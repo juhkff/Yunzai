@@ -1,0 +1,8 @@
+config/*.yaml
+data
+logs
+node_modules
+temp
+dump.rdb
+pnpm-lock.yaml
+.vscode
