@@ -1,8 +1,11 @@
-import { getemoji } from '../utils/getdate.js'
+import { downloadFile, getemoji } from '../utils/getdate.js'
 import setting from '../model/setting.js'
+import fs from 'fs'
+
+const _path = process.cwd() + "/plugins/logier-plugin"
 
 export class TextMsg extends plugin {
-  constructor () {
+  constructor() {
     super({
       name: '[鸢尾花插件]表情包小偷',
       dsc: '表情包小偷',
@@ -18,11 +21,11 @@ export class TextMsg extends plugin {
     })
   }
 
-  get appconfig () {
+  get appconfig() {
     return setting.getConfig('EmojiThief')
   }
 
-  async 表情包小偷 (e) {
+  async 表情包小偷(e) {
     let rate = this.appconfig.DefaultReplyRate // 默认概率
     let EmojiRate = this.appconfig.DefaultEmojiRate
     let groupMatched = false
@@ -42,24 +45,30 @@ export class TextMsg extends plugin {
       if (!groupMatched) return false
     }
 
-    let key = `Yunzai:EmojiThief:${e.group_id}_EmojiThief`
+    let key = `${e.group_id}_EmojiThief`
+
+    const emojiThiefDir = `${_path}/data/EmojiThief/${key}`
+    await fs.promises.mkdir(emojiThiefDir, { recursive: true })
+    let list = await fs.promises.readdir(emojiThiefDir)
 
     // 处理消息的每一项
     for (const item of e.message) {
-      if (item.asface) {
+      if (item.type === 'image') {
         try {
-          let listStr = await redis.get(key)
-          let list = listStr ? JSON.parse(listStr) : []
-          if (!list.includes(item.url)) {
+          list = list ? list : []
+          if (!list.includes(`${item.file_unique}.jpg`)) {
             logger.info('[表情包小偷]偷取表情包')
-            list.push(item.url)
-            if (list.length > 50) {
-              list.shift()
+            await downloadFile(item.url, `${emojiThiefDir}/${item.file_unique}.jpg`)
+            if (list.length === 50) {
+              const randomIndex = Math.floor(Math.random() * list.length)
+              const randomFile = list[randomIndex]
+              fs.unlinkSync(`${emojiThiefDir}/${randomFile}`)
+              list.splice(randomIndex, 1)
+              logger.info(`[表情包小偷]存储过多，删除表情包: ${randomFile}`)
             }
-            await redis.set(key, JSON.stringify(list))
           }
         } catch (error) {
-          logger.error(`[表情包小偷]Redis数据库出错: ${error}`)
+          logger.error(`[表情包小偷]出错: ${error}`)
         }
       }
     }
@@ -68,15 +77,11 @@ export class TextMsg extends plugin {
     if (Math.random() < rate) {
       try {
         let emojiUrl = await getemoji(e, this.appconfig.ETEmojihubCategory)
-        let listStr = await redis.get(key)
 
-        // 只有在获取到 listStr 的情况下才继续
-        if (listStr && Math.random() >= Number(EmojiRate)) {
-          let list = JSON.parse(listStr)
-          if (Array.isArray(list) && list.length) {
-            let randomIndex = Math.floor(Math.random() * list.length)
-            emojiUrl = list[randomIndex]
-          }
+        // 有表情包的情况下才继续
+        if (list.length > 0 && Math.random() >= Number(EmojiRate)) {
+          let randomIndex = Math.floor(Math.random() * list.length)
+          emojiUrl = `${emojiThiefDir}/${list[randomIndex]}`
         }
         logger.info(`[鸢尾花插件] 发送表情包: ${emojiUrl}`)
         e.reply([segment.image(emojiUrl)])

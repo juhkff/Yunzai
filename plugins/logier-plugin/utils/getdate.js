@@ -9,6 +9,30 @@ import setting from "../model/setting.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+export async function downloadFile(url, dest) {
+    return new Promise((resolve, reject) => {
+        const file = fs.createWriteStream(dest);
+        https.get(url, (response) => {
+            if (response.statusCode !== 200) {
+                reject(new Error(`Failed to get '${url}' (${response.statusCode})`));
+                return;
+            }
+
+            response.pipe(file);
+
+            file.on('finish', () => {
+                file.close(resolve);
+            });
+
+            file.on('error', (err) => {
+                fs.unlink(dest, () => reject(err));
+            });
+        }).on('error', (err) => {
+            fs.unlink(dest, () => reject(err));
+        });
+    });
+}
+
 export function getFunctionData(YamlName, ArrayName, Function) {
     const Config = setting.getConfig(YamlName);
     const functionData = Config[ArrayName].find(item => item.FunctionName === Function) || Config[ArrayName].find(item => item.FunctionName === 'default');
@@ -20,7 +44,7 @@ export async function readAndParseJSON(filePath) {
         const fileContent = await fs.promises.readFile(path.join(__dirname, filePath), 'utf8');
         return JSON.parse(fileContent);
     } catch (e) {
-        logger.info('[鸢尾花插件]json读取失败') ;
+        logger.info('[鸢尾花插件]json读取失败');
     }
 }
 
@@ -44,7 +68,7 @@ export async function gpt(messages, GPTKey = null, GPTUrl = null, GPTModel = nul
 
     // 解析URL
     let url = new URL(GPTUrl);
-    if (!url.pathname || url.pathname === '/' || url.pathname === '/v1/'|| url.pathname === '/v1') {
+    if (!url.pathname || url.pathname === '/' || url.pathname === '/v1/' || url.pathname === '/v1') {
         url.pathname = '/v1/chat/completions';
     }
     GPTUrl = url.toString();
@@ -52,7 +76,7 @@ export async function gpt(messages, GPTKey = null, GPTUrl = null, GPTModel = nul
     logger.info(GPTUrl)
 
     let myHeaders = new Headers();
-    myHeaders.append("Authorization", "Bearer " + GPTKey );
+    myHeaders.append("Authorization", "Bearer " + GPTKey);
     myHeaders.append("User-Agent", "Apifox/1.0.0 (https://apifox.com)");
     myHeaders.append("Content-Type", "application/json");
 
@@ -83,26 +107,26 @@ export async function gpt(messages, GPTKey = null, GPTUrl = null, GPTModel = nul
 async function readCategoryFiles(category) {
     const files = await readAndParseJSON(`../data/${category}.json`);
     return getRandomFile(files);
-  }
-
-export async function getRandomImage(category) {
-let file;
-if (['pc', 'mb', 'sq'].includes(category)) {
-    file = await readCategoryFiles(category);
-} else {
-    const allFiles = await Promise.all(['pc', 'mb', 'sq'].map(readCategoryFiles));
-    file = getRandomFile([].concat(...allFiles));
 }
 
-let basename = file.split('.')[0];
-let imageUrl = `https://pixiv.nl/${basename}.jpg`;
+export async function getRandomImage(category) {
+    let file;
+    if (['pc', 'mb', 'sq'].includes(category)) {
+        file = await readCategoryFiles(category);
+    } else {
+        const allFiles = await Promise.all(['pc', 'mb', 'sq'].map(readCategoryFiles));
+        file = getRandomFile([].concat(...allFiles));
+    }
 
-return imageUrl;
+    let basename = file.split('.')[0];
+    let imageUrl = `https://pixiv.nl/${basename}.jpg`;
+
+    return imageUrl;
 }
 
 function getRandomFile(category) {
-let allFiles = [].concat(...Object.values(category));
-return allFiles[Math.floor(Math.random() * allFiles.length)];
+    let allFiles = [].concat(...Object.values(category));
+    return allFiles[Math.floor(Math.random() * allFiles.length)];
 }
 
 
@@ -122,7 +146,7 @@ export function getTimeOfDay() {
     }
 
     return timeOfDay;
-  }
+}
 
 
 
@@ -132,11 +156,11 @@ export async function numToChinese(num) {
     let result = '';
     const strNum = num.toString();
     const len = strNum.length;
-    for(let i = 0; i < len; i++) {
+    for (let i = 0; i < len; i++) {
         const curNum = parseInt(strNum[i]);
         const unit = units[len - 1 - i];
-        if(curNum === 0) {
-            if(result.slice(-1) !== '零') {
+        if (curNum === 0) {
+            if (result.slice(-1) !== '零') {
                 result += '零';
             }
         } else {
@@ -151,12 +175,12 @@ export function NumToRoman(num) {
     let str = '';
 
     for (let i of Object.keys(roman)) {
-      let q = Math.floor(num / roman[i]);
-      num -= q * roman[i];
-      str += i.repeat(q);
+        let q = Math.floor(num / roman[i]);
+        num -= q * roman[i];
+        str += i.repeat(q);
     }
     return str;
-  }
+}
 
 
 
@@ -279,7 +303,7 @@ export async function getRandomUrl(imageUrls) {
         }
     }
 
-    logger.info('[鸢尾花插件]图片url：'+imageUrl)
+    logger.info('[鸢尾花插件]图片url：' + imageUrl)
     return imageUrl;
 }
 
