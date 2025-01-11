@@ -5,7 +5,9 @@
 # 配置
 
 ```console
+nvm install 23.3.0
 nvm use 23.3.0
+npm i -g pnpm
 cd Yunzai
 pnpm i
 ```
