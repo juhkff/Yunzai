@@ -1,4 +1,5 @@
 config/*.yaml
+!config/pm2.yaml
 data
 logs
 node_modules
