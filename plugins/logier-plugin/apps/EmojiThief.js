@@ -53,12 +53,13 @@ export class TextMsg extends plugin {
 
     // 处理消息的每一项
     for (const item of e.message) {
-      if (item.type === 'image') {
+      if (item.type === 'image' && item.file_size < 100000) {
         try {
           list = list ? list : []
           if (!list.includes(`${item.file_unique}.jpg`)) {
             logger.info('[表情包小偷]偷取表情包')
-            await downloadFile(item.url, `${emojiThiefDir}/${item.file_unique}.jpg`)
+            let imgType = item.file.split('.').pop()
+            await downloadFile(item.url, `${emojiThiefDir}/${item.file_unique}.${imgType}`)
             if (list.length === 50) {
               const randomIndex = Math.floor(Math.random() * list.length)
               const randomFile = list[randomIndex]
