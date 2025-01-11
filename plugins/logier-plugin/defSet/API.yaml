@@ -1,0 +1,16 @@
+API:
+  - FunctionName: 摸鱼日历
+    SourceUrl: https://api.vvhan.com/api/moyu
+    isAutoPush: false
+    PushTime: 0 0 */1 * * ?
+    PushGroupList: []
+  - FunctionName: 今日新闻
+    SourceUrl: https://api.03c3.cn/api/zb
+    isAutoPush: false
+    PushTime: 00 30 9 * * ?
+    PushGroupList: []
+  - FunctionName: 真寻日报
+    SourceUrl: https://api.atxrom.cn/
+    isAutoPush: false
+    PushTime: 0 30 7 * * ?
+    PushGroupList: []
