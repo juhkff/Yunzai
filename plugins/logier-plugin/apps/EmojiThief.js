@@ -41,13 +41,9 @@ export class TextMsg extends plugin {
           break
         }
       }
-      // 如果没有匹配到任何组，直接返回
-      if (!groupMatched) return false
     }
 
-    let key = `${e.group_id}_EmojiThief`
-
-    const emojiThiefDir = `${_path}/data/EmojiThief/${key}`
+    const emojiThiefDir = `${_path}/data/EmojiThief/${e.group_id}_EmojiThief`
     await fs.promises.mkdir(emojiThiefDir, { recursive: true })
     let list = await fs.promises.readdir(emojiThiefDir)
 
@@ -60,7 +56,8 @@ export class TextMsg extends plugin {
             logger.info('[表情包小偷]偷取表情包')
             let imgType = item.file.split('.').pop()
             await downloadFile(item.url, `${emojiThiefDir}/${item.file_unique}.${imgType}`)
-            if (list.length === 50) {
+            list.push(`${item.file_unique}.${imgType}`)
+            if (list.length > 50) {
               const randomIndex = Math.floor(Math.random() * list.length)
               const randomFile = list[randomIndex]
               fs.unlinkSync(`${emojiThiefDir}/${randomFile}`)

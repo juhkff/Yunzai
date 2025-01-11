@@ -1,10 +1,14 @@
 import { getPersonality, getemoji, gpt } from '../utils/getdate.js'
 import setting from '../model/setting.js'
+import fs from 'fs'
+
+
+const _path = process.cwd() + "/plugins/logier-plugin"
 
 // 导出一个问候插件
 export class greetings extends plugin {
   // 构建正则匹配等
-  constructor () {
+  constructor() {
     super({
       name: '[鸢尾花插件]潜伏gpt',
       event: 'message',
@@ -19,15 +23,19 @@ export class greetings extends plugin {
     })
   }
 
-  get appconfig () {
+  get appconfig() {
     return setting.getConfig('Customize')
   }
 
-  get GPTconfig () {
+  get thiefconfig() {
+    return setting.getConfig('EmojiThief')
+  }
+
+  get GPTconfig() {
     return setting.getConfig('GPTconfig')
   }
 
-  async 潜伏 (e) {
+  async 潜伏(e) {
     if (!this.GPTconfig.GPTKey) {
       return false
     }
@@ -71,7 +79,30 @@ export class greetings extends plugin {
     }
 
     let imageUrl = await getemoji(e, this.appconfig.CustomizeEmojiCategory)
-    logger.info(this.appconfig.CustomizeEmojiCategory)
+
+    let EmojiRate = this.thiefconfig.DefaultEmojiRate
+    // 如果 ETGroupRate 配置存在且不为空
+    if (this.thiefconfig.ETGroupRate && this.thiefconfig.ETGroupRate.length > 0) {
+      for (let config of this.thiefconfig.ETGroupRate) {
+        // 确保 config.groupList 是数组，以避免 undefined 的情况
+        if (Array.isArray(config.groupList) && config.groupList.includes(e.group_id)) {
+          EmojiRate = config.EmojiRate
+          break
+        }
+      }
+    }
+    // 有表情包的情况下才继续
+    const emojiThiefDir = `${_path}/data/EmojiThief/${e.group_id}_EmojiThief`
+    await fs.promises.mkdir(emojiThiefDir, { recursive: true })
+    let list = await fs.promises.readdir(emojiThiefDir)
+    list = list ? list : []
+    if (list.length > 0 && Math.random() >= Number(EmojiRate)) {
+      let randomIndex = Math.floor(Math.random() * list.length)
+      imageUrl = `${emojiThiefDir}/${list[randomIndex]}`
+      logger.info("[潜伏模板]发送偷图表情包")
+    } else {
+      logger.info(this.appconfig.CustomizeEmojiCategory)
+    }
     logger.info(imageUrl)
     if (imageUrl) {
       await new Promise(resolve => setTimeout(resolve, sentences.length * 3000)) // 在所有句子都回复完之后再发送图片
