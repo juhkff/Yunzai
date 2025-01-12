@@ -1,9 +1,8 @@
-config/*.yaml
-!config/pm2.yaml
-data
-logs
+/config/*.yaml
+!/config/pm2.yaml
+/data
+/logs
 node_modules
-temp
-dump.rdb
-pnpm-lock.yaml
-.vscode
+/temp
+/dump.rdb
+/.vscode
