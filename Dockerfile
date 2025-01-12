@@ -1,0 +1,31 @@
+FROM ubuntu:latest
+
+EXPOSE 2536 2877
+
+# Install dependencies
+RUN apt update && apt install -y \
+    git \
+    curl \
+    redis
+
+WORKDIR /root
+
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash && \
+    . ~/.bashrc && \
+    nvm install 23.3.0 && \
+    nvm use 23.3.0 && \
+    npm config set registry https://registry.npmmirror.com && \
+    npm i -g pnpm
+
+# 或者本地COPY
+RUN echo '#!/bin/sh' > /root/start.sh && \
+    echo '. ~/.bashrc' >> /root/start.sh && \
+    echo 'if [ ! -d "/root/Yunzai" ]; then' >> /root/start.sh && \
+    echo '  git clone https://juhkff:$GITEE_TOKEN@gitee.com/juhkff/Yunzai.git /root/Yunzai' >> /root/start.sh && \
+    echo 'fi' >> /root/start.sh && \
+    echo 'cd /root/Yunzai' >> /root/start.sh && \
+    echo 'pnpm i' >> /root/start.sh && \
+    echo 'node .' >> /root/start.sh && \
+    chmod +x /root/start.sh
+
+ENTRYPOINT ["/root/start.sh"]
