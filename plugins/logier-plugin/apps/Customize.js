@@ -71,7 +71,7 @@ export class greetings extends plugin {
       if (index === 0) {
         // 第一句回复时使用这种形式，并延迟3到15秒
         await new Promise(resolve => setTimeout(resolve, Math.random() * (10000 - 3000)))
-        e.reply(sentences[index], true)
+        e.reply(sentences[index])
       } else {
         await new Promise(resolve => setTimeout(resolve, 3000)) // 输出间隔三秒
         e.reply(sentences[index])
