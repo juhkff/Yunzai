@@ -119,7 +119,6 @@ dist
 # Guoba Ingored
 /data/*
 /lib/test.js
-/lib/v2-js/*
 /config/*
 /test/
 /server/static/preload
