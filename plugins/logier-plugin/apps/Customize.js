@@ -1,7 +1,7 @@
 import { getPersonality, getemoji, gpt } from '../utils/getdate.js'
 import setting from '../model/setting.js'
 import fs from 'fs'
-
+import chat_history from '../model/chat_history.js'
 
 const _path = process.cwd() + "/plugins/logier-plugin"
 
@@ -46,9 +46,20 @@ export class greetings extends plugin {
     }
 
     if (Math.random() > Number(this.appconfig.CustomizeRate)) { return false }
-
+    const date = new Date(e.time * 1000); // 将秒转换为毫秒
+    const standardTime = date.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).replace(/\//g, '-').replace(',', ''); // 替换斜杠为短横线，去掉逗号
+    chat_history.checkGroup(e.group_id)
+    chat_history.addMessage(e.group_id, `${standardTime} ${e.sender.card}:${e.msg}`)
     let arr2 = [
-      { role: 'user', content: `${e.nickname}说：${e.msg}` }]
+      { role: 'user', content: `${chat_history.generateContent(e.group_id)}` }]
     let gptmsgInitial = await getPersonality()
     let gptmsg = [...gptmsgInitial, ...arr2] // 创建一个新的数组，包含初始的 "personality" 和用户的消息
     // logger.info(gptmsg)
@@ -59,25 +70,33 @@ export class greetings extends plugin {
       return false
     }
 
-    let sentences
-    if (typeof content === 'string') {
-      sentences = content.split(/(?<=[。！?;；:：])/g)
-    } else {
+    logger.info(typeof content)
+    if (!content || content.length === 0) {
       logger.info('未获取到内容', content)
+      return false
+    }
+    if (typeof content !== 'string') {
+      logger.info('GPT回复内容: ', content)
     }
 
-    // 轮流回复
-    for (let index = 0; index < sentences.length; index++) {
-      if (index === 0) {
-        // 第一句回复时使用这种形式，并延迟3到15秒
-        await new Promise(resolve => setTimeout(resolve, Math.random() * (10000 - 3000)))
-        e.reply(sentences[index])
-      } else {
-        await new Promise(resolve => setTimeout(resolve, 3000)) // 输出间隔三秒
-        e.reply(sentences[index])
-      }
-    }
+    // 延迟3到10秒
+    await new Promise(resolve => setTimeout(resolve, Math.random() * (10000 - 3000)))
+    e.reply(content)
+    const now = new Date(); // 获取当前时间
+    const replyTime = now.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).replace(/\//g, '-').replace(',', ''); // 替换斜杠为短横线，去掉逗号
 
+    // 机器人回复的消息也要保存到聊天记录中
+    chat_history.addMessage(e.group_id, `${replyTime} 我:${content}`)
+
+    if (Math.random() > Number(this.appconfig.CustomizeEmojiRate)) { return false }
     let imageUrl = await getemoji(e, this.appconfig.CustomizeEmojiCategory)
 
     let EmojiRate = this.thiefconfig.DefaultEmojiRate
@@ -105,7 +124,7 @@ export class greetings extends plugin {
     }
     logger.info(imageUrl)
     if (imageUrl) {
-      await new Promise(resolve => setTimeout(resolve, sentences.length * 3000)) // 在所有句子都回复完之后再发送图片
+      await new Promise(resolve => setTimeout(resolve, 3000)) // 在所有句子都回复完之后再发送图片
       logger.info(`[潜伏模板]发送“${this.appconfig.CustomizeEmojiCategory}”表情包`)
       e.reply([segment.image(imageUrl)])
     }
