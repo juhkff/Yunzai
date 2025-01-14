@@ -326,7 +326,9 @@ export class SF_Painting extends plugin {
             historyImages: historyImages.length > 0 ? historyImages : undefined
         }
 
-        const answer = await this.generatePrompt(aiMessage, use_sf_key, config_date, true, apiBaseUrl, model, opt, historyMessages)
+        let answer = await this.generatePrompt(aiMessage, use_sf_key, config_date, true, apiBaseUrl, model, opt, historyMessages)
+        // 使用正则表达式去掉字符串 answer 开头的换行符
+        answer = answer.replace(/^\n/, '');
 
         // 保存对话记录
         if (config_date.gg_useContext) {
@@ -654,7 +656,7 @@ SF插件设置帮助：
             historyImages: historyImages.length > 0 ? historyImages : undefined
         }
 
-        const { answer, sources } = await this.generateGeminiPrompt(aiMessage, ggBaseUrl, ggKey, config_date, opt, historyMessages)
+        let { answer, sources } = await this.generateGeminiPrompt(aiMessage, ggBaseUrl, ggKey, config_date, opt, historyMessages)
 
         // 保存对话记录
         if (config_date.gg_useContext) {
@@ -673,6 +675,8 @@ SF插件设置帮助：
             })
         }
 
+        // 使用正则表达式去掉字符串 answer 开头的换行符
+        answer = answer.replace(/^\n/, '');
         // 获取markdown开关配置，默认为false
         const useMarkdown = config_date?.gg_useMarkdown ?? false
 
