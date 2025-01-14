@@ -26,7 +26,7 @@ RUN echo '#!/bin/sh' > /root/start.sh && \
     echo 'else' >> /root/start.sh && \
     echo '  cd /root/Yunzai && git pull' >> /root/start.sh && \
     echo 'fi' >> /root/start.sh && \
-    echo 'pnpm i' >> /root/start.sh && \
+    echo 'pnpm i && pnpm puppeteer browsers install chrome' >> /root/start.sh && \
     echo 'node .' >> /root/start.sh && \
     chmod +x /root/start.sh
 
