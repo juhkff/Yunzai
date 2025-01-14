@@ -1,0 +1,32 @@
+gpt: 
+  model: gpt-4-32k-0314
+  markdown: false
+gptweb: 
+  markdown: false
+bing: 
+  style: Balanced
+  markdown: false
+llama2: 
+  system_message: ''
+  temperature: 0.9
+  max_tokens: 4096
+  top_p: 0.6
+  repetition_penalty: 1.2
+  markdown: false
+prodia_v1: 
+  model: cuteyukimixAdorable_midchapter3.safetensors [04bdffe6]
+  steps: 25
+  cfg_scale: 7
+  sampler: DPM++ 2M Karras
+  negative_prompt: ''
+prodia_stablediffusion: 
+  model: cuteyukimixAdorable_midchapter3.safetensors [04bdffe6]
+  sampling_steps: 25
+  cfg_scale: 7
+  sampling_method: DPM++ 2M Karras
+  prompt_negative: ''
+  width: 512
+  height: 512
+stablediffusion_v2: 
+  guidance_scale: 9
+  prompt_negative: ''
