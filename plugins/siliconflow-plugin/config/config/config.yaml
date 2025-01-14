@@ -4,9 +4,9 @@ sfBaseUrl: https://api.siliconflow.cn/v1
 translateModel: THUDM/glm-4-9b-chat
 generatePrompt: true
 num_inference_steps: 20
-imageModel: black-forest-labs/FLUX.1-schnell
+imageModel: stabilityai/stable-diffusion-3-5-large
 free_mode: false
-simpleMode: false
+simpleMode: true
 sf_textToPaint_Prompt: 请按照我的提供的要求，用一句话英文生成一组Midjourney指令，指令由：{人物形象},{场景},{氛围},{镜头},{照明},{绘画风格},{建筑风格},{参考画家},{高画质关键词}
   当我向你提供生成内容时，你需要根据我的提示进行联想，当我让你随机生成的时候，你可以自由进行扩展和联想 人物形象 =
   你可以发挥自己的想象力，使用最华丽的词汇进行描述：{主要内容}，包括对人物头发、眼睛、服装、体型、动作和表情的描述，注意人物的形象应与氛围匹配，要尽可能地详尽
@@ -21,15 +21,15 @@ sf_textToPaint_Prompt: 请按照我的提供的要求，用一句话英文生成
   command之类的语句，直接给出我要传递给midjourney的提示词，这非常重要！！！直接生成提示词，并且只需要生成提示词，尽可能详细地生成提示词。
 botName: ""
 defaultCommand: gg
-mj_apiKey: "1011"
-mj_apiBaseUrl: https://ai.trueai.org
+mj_apiKey: ""
+mj_apiBaseUrl: ""
 mj_translationKey: ""
 mj_translationBaseUrl: ""
-mj_translationModel: gpt-4o
+mj_translationModel: ""
 mj_translationEnabled: false
 mj_mode: fast
 fish_apiKey: ""
-fish_reference_id: efc1ce3726a64bbc947d53a1465204aa
+fish_reference_id: ""
 enableTranslation: false
 targetLang: JA
 syncConfig: {}
@@ -38,7 +38,7 @@ link_domain: https://xiaozhian-slink.hf.space
 ss_apiBaseUrl: ""
 ss_Key: ""
 ss_model: ""
-ss_Prompt: ""
+ss_Prompt: 你是群BOT，除非有明确指向，他人的话一般并不是对你说的（即使有“你”之类的主语），这种情况下回复的主语不应该是“我”；你的发言不一定要对最后的聊天内容给出答复，也可以顺着说下去；语气不需要太正式，语法结构不一定要完整，只要像朋友间日常聊天就可以，还可以开开玩笑之类的，最好有一些戏谑和调侃的内容，但不要用“哇”、“哎呀“、“哈哈”等无意义的语气词，语气放平淡，仿佛大家认识很久都很熟悉；回复不要太长，不能超过40个汉字，最好不超过25个汉字，两三句话最好，别人说的没啥内容的话你也少说点
 ss_useMarkdown: false
 ggBaseUrl: ""
 ggKey: ***REMOVED***

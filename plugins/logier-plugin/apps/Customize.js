@@ -2,6 +2,7 @@ import { getPersonality, getemoji, gpt } from '../utils/getdate.js'
 import setting from '../model/setting.js'
 import fs from 'fs'
 import chat_history from '../model/chat_history.js'
+import { SF_Painting } from '../../siliconflow-plugin/apps/SF_Painting.js'
 
 const _path = process.cwd() + "/plugins/logier-plugin"
 
@@ -21,6 +22,8 @@ export class greetings extends plugin {
         }
       ]
     })
+
+    this.sfPainting = new SF_Painting()
   }
 
   get appconfig() {
@@ -36,6 +39,14 @@ export class greetings extends plugin {
   }
 
   async 潜伏(e) {
+    // 和siliconflow-plugin做一下结合，因为对消息的统一判断是在这里处理的
+    // 如果@了bot，就直接回复
+    let chatFinish = false
+    if (e.atBot) {
+      await this.sfPainting.sf_chat(e)
+      chatFinish = true
+    }
+
     if (!this.GPTconfig.GPTKey) {
       return false
     }
@@ -46,57 +57,13 @@ export class greetings extends plugin {
     }
 
     if (Math.random() > Number(this.appconfig.CustomizeRate)) { return false }
-    const date = new Date(e.time * 1000); // 将秒转换为毫秒
-    const standardTime = date.toLocaleString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
-    }).replace(/\//g, '-').replace(',', ''); // 替换斜杠为短横线，去掉逗号
-    chat_history.checkGroup(e.group_id)
-    chat_history.addMessage(e.group_id, `${standardTime} ${e.sender.card}:${e.msg}`)
-    let arr2 = [
-      { role: 'user', content: `${chat_history.generateContent(e.group_id)}` }]
-    let gptmsgInitial = await getPersonality()
-    let gptmsg = [...gptmsgInitial, ...arr2] // 创建一个新的数组，包含初始的 "personality" 和用户的消息
-    // logger.info(gptmsg)
-    const content = await gpt(gptmsg)
-
-    if (content == true) {
-      logger.info('[潜伏模板]key或url配置错误')
-      return false
+    // 借助siliconflow-plugin的功能，对消息进行处理，原逻辑删除
+    if (!chatFinish) {
+      await this.sfPainting.sf_chat(e)
+      chatFinish = true
     }
 
-    logger.info(typeof content)
-    if (!content || content.length === 0) {
-      logger.info('未获取到内容', content)
-      return false
-    }
-    if (typeof content !== 'string') {
-      logger.info('GPT回复内容: ', content)
-    }
-
-    // 延迟3到10秒
-    await new Promise(resolve => setTimeout(resolve, Math.random() * (10000 - 3000)))
-    e.reply(content)
-    const now = new Date(); // 获取当前时间
-    const replyTime = now.toLocaleString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
-    }).replace(/\//g, '-').replace(',', ''); // 替换斜杠为短横线，去掉逗号
-
-    // 机器人回复的消息也要保存到聊天记录中
-    chat_history.addMessage(e.group_id, `${replyTime} 我:${content}`)
-
-    if (Math.random() > Number(this.appconfig.CustomizeEmojiRate)) { return false }
+    if (Math.random() > Number(this.appconfig.CustomizeEmojiRate)) { return true }
     let imageUrl = await getemoji(e, this.appconfig.CustomizeEmojiCategory)
 
     let EmojiRate = this.thiefconfig.DefaultEmojiRate

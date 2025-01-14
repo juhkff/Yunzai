@@ -11,6 +11,7 @@ import { markdown_screenshot } from '../utils/markdownPic.js'
 import { processMessageWithUrls } from '../utils/extractUrl.js'
 import { saveContext, loadContext, formatContextForGemini, clearUserContext, clearAllContext } from '../utils/context.js'
 import { getUin } from '../utils/common.js'
+import { segment } from 'oicq';
 
 // 使机器人可以对其第一人称回应
 const reg_chatgpt_for_firstperson_call = new RegExp(Config.getConfig()?.botName || `sf-plugin-bot-name-${Math.floor(10000 + Math.random() * 90000)}`, "g");
@@ -178,7 +179,7 @@ export class SF_Painting extends plugin {
                     return
             }
             Config.setConfig(config_date)
-            await e.reply(`${type}已设置：${value}`)
+            await e.reply(`${type}已设置：${value}`, true)
         }
         return
     }
@@ -190,7 +191,7 @@ export class SF_Painting extends plugin {
         // logger.mark("draw方法被调用，消息内容:", e.msg)
 
         if (config_date.sf_keys.length == 0) {
-            await e.reply('请先设置画图API Key。使用命令：#sf设置画图key [值]（仅限主人设置）')
+            await e.reply('请先设置画图API Key。使用命令：#sf设置画图key [值]（仅限主人设置）', true)
             return false
         }
 
@@ -254,8 +255,8 @@ export class SF_Painting extends plugin {
             apiBaseUrl = config_date.ss_apiBaseUrl;
             model = config_date.ss_model || "gpt-4";
         } else if (config_date.sf_keys.length == 0) {
-            await e.reply('请先设置API Key。使用命令：#sf设置画图key [值]（仅限主人设置）')
-            return false
+            await e.reply('请先设置API Key。使用命令：#sf设置画图key [值]（仅限主人设置）', true)
+            return true
         } else {
             use_sf_key = this.get_use_sf_key(config_date);
         }
@@ -271,7 +272,7 @@ export class SF_Painting extends plugin {
                 const base64Image = await url2Base64(imgUrl);
                 if (!base64Image) {
                     e.reply('引用的图片地址已失效，请重新发送图片', true)
-                    return false
+                    return true
                 }
                 currentImages.push(base64Image);
             }
@@ -350,18 +351,19 @@ export class SF_Painting extends plugin {
             if (useMarkdown) {
                 const img = await markdown_screenshot(e.user_id, e.self_id, e.img ? e.img.map(url => `<img src="${url}" width="256">`).join('\n') + "\n\n" + msg : msg, answer);
                 if (img) {
-                    await e.reply({ ...img, origin: true }, true)
+                    await e.reply({ ...img, origin: true })
                 } else {
                     logger.error('[sf插件] markdown图片生成失败')
                 }
                 e.reply(await common.makeForwardMsg(e, [answer], `${e.sender.card || e.sender.nickname || e.user_id}的对话`));
             } else {
-                await e.reply(answer, true)
+                await e.reply(answer)
             }
         } catch (error) {
             logger.error('[sf插件] 回复消息时发生错误：', error)
-            await e.reply('消息处理失败，请稍后再试')
+            await e.reply('消息处理失败，请稍后再试', true)
         }
+        return true
     }
 
     /**
@@ -559,7 +561,8 @@ SF插件设置帮助：
                 // 发送图片
                 if (config_date.simpleMode) {
                     const msgx = await common.makeForwardMsg(e, [str_1, { ...segment.image(imageUrl), origin: true }, str_2, str_3], `${e.sender.card || e.sender.nickname} 的${canImg2Img ? "图生图" : "文生图"}`)
-                    e.reply(msgx)
+                    // e.reply(msgx)
+                    e.reply([segment.image(imageUrl), str_3])
                 } else {
                     const msgx = await common.makeForwardMsg(e, [str_1, str_2, str_3], `${e.sender.card || e.sender.nickname} 的${canImg2Img ? "图生图" : "文生图"}`)
                     e.reply(msgx)
@@ -569,12 +572,12 @@ SF插件设置帮助：
                 return true;
             } else {
                 logger.error("[sf插件]返回错误：\n", JSON.stringify(data, null, 2))
-                e.reply(`生成图片失败：${data.message || '未知错误'}`)
+                e.reply(`生成图片失败：${data.message || '未知错误'}`, true)
                 return false;
             }
         } catch (error) {
             logger.error("[sf插件]API调用失败\n", error)
-            e.reply('生成图片时遇到了一个错误，请稍后再试。')
+            e.reply('生成图片时遇到了一个错误，请稍后再试。', true)
             return false;
         }
     }
@@ -678,7 +681,7 @@ SF插件设置帮助：
                 // 如果开启了markdown，生成图片并将回答放入转发消息
                 const img = await markdown_screenshot(e.user_id, e.self_id, e.img ? e.img.map(url => `<img src="${url}" width="256">`).join('\n') + "\n\n" + msg : msg, answer);
                 if (img) {
-                    await e.reply({ ...img, origin: true }, true)
+                    await e.reply({ ...img, origin: true })
                 } else {
                     logger.error('[sf插件] markdown图片生成失败')
                 }
@@ -694,7 +697,7 @@ SF插件设置帮助：
                 e.reply(await common.makeForwardMsg(e, forwardMsg, `${e.sender.card || e.sender.nickname || e.user_id}的搜索结果`));
             } else {
                 // 如果没开启markdown，直接回复答案
-                await e.reply(answer, true)
+                await e.reply(answer)
 
                 // 如果有来源，单独发送转发消息显示来源
                 if (sources && sources.length > 0) {
@@ -707,7 +710,7 @@ SF插件设置帮助：
             }
         } catch (error) {
             logger.error('[sf插件] 回复消息时发生错误：', error)
-            await e.reply('消息处理失败，请稍后再试')
+            await e.reply('消息处理失败，请稍后再试', true)
         }
     }
 
@@ -833,28 +836,28 @@ SF插件设置帮助：
     async sf_end_chat(e) {
         const config_date = Config.getConfig()
         if (!config_date.gg_useContext) {
-            await e.reply('上下文功能未开启')
+            await e.reply('上下文功能未开启', true)
             return
         }
 
         if (await clearUserContext(e.user_id)) {
-            await e.reply('已结束当前对话，历史记录已清除')
+            await e.reply('已结束当前对话，历史记录已清除', true)
         } else {
-            await e.reply('结束对话失败，请稍后再试')
+            await e.reply('结束对话失败，请稍后再试', true)
         }
     }
 
     async sf_end_all_chat(e) {
         const config_date = Config.getConfig()
         if (!config_date.gg_useContext) {
-            await e.reply('上下文功能未开启')
+            await e.reply('上下文功能未开启', true)
             return
         }
 
         if (await clearAllContext()) {
-            await e.reply('已结束所有对话，所有历史记录已清除')
+            await e.reply('已结束所有对话，所有历史记录已清除', true)
         } else {
-            await e.reply('结束所有对话失败，请稍后再试')
+            await e.reply('结束所有对话失败，请稍后再试', true)
         }
     }
 }

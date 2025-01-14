@@ -4,6 +4,31 @@ EXPOSE 2536 2877
 
 # Install dependencies
 RUN apt update && apt install -y \
+    libasound2t64 \
+    libglib2.0-0t64 \
+    libnss3 \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxcursor1 \
+    libxdamage1 \
+    libxi6 \
+    libxtst6 \
+    libxrandr2 \
+    libatk1.0-0t64 \
+    libatk-bridge2.0-0t64 \
+    libcups2t64 \
+    libdrm2 \
+    libgbm1 \
+    libgtk-3-0t64 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libxss1 \
+    libxshmfence1 \
+    fonts-liberation \
+    libappindicator3-1 \
+    lsb-release \
+    xdg-utils \
+    wget \
     git \
     curl \
     redis
