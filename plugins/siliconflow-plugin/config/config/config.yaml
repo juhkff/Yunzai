@@ -47,3 +47,4 @@ gg_Prompt: ""
 gg_model: ""
 gg_useContext: true
 gg_maxHistoryLength: 20
+ss_canSendImage: false
