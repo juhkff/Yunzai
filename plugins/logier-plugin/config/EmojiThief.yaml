@@ -7,6 +7,10 @@ ETGroupRate:
       - ***REMOVED***
     rate: 0.6
     EmojiRate: 0.2
+  - groupList:
+      - ***REMOVED***
+    rate: 0.2
+    EmojiRate: 0.2
 DefalutReplyRate: 0.1
 DefalutEmojiRate: 0.2
 ETEmojihubCategory: 表情包仓库
