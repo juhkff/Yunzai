@@ -82,14 +82,16 @@ export async function parseSourceImg(e, alsoGetAtAvatar = true, useOrigin = fals
       }
     }
     if (Boolean(i.length)) {
-      e.img = i
+      // 防止消息中的图片被引用图片覆盖
+      // e.img = i
+      e.sourceImg = i
     }
     if (text.length > 0) {
       // 如果有发送者昵称,添加到引用文本前,使用markdown引用格式
       const lines = text.join('\n').split('\n');
       const quotedLines = lines.map(line => `> ${line}`).join('\n');
-      e.sourceMsg = senderNickname ? 
-        `> ##### ${senderNickname}：\n> ---\n${quotedLines}` : 
+      e.sourceMsg = senderNickname ?
+        `> ##### ${senderNickname}：\n> ---\n${quotedLines}` :
         quotedLines;
     }
   }

@@ -263,6 +263,20 @@ export class SF_Painting extends plugin {
 
         // 处理引用消息,获取图片和文本
         await parseSourceImg(e)
+        let sourceImages = [];
+        if (e.sourceImg && e.sourceImg.length > 0) {
+            // 记录获取到的图片链接
+            logger.mark(`[SF插件][ss]获取到引用图片链接:\n${e.sourceImg.join('\n')}`)
+            // 获取所有图片数据
+            for (const imgUrl of e.sourceImg) {
+                const base64Image = await url2Base64(imgUrl);
+                if (!base64Image) {
+                    e.reply('引用的图片地址已失效，请重新发送图片', true)
+                    return true
+                }
+                sourceImages.push(base64Image);
+            }
+        }
         let currentImages = [];
         if (e.img && e.img.length > 0) {
             // 记录获取到的图片链接
@@ -271,13 +285,12 @@ export class SF_Painting extends plugin {
             for (const imgUrl of e.img) {
                 const base64Image = await url2Base64(imgUrl);
                 if (!base64Image) {
-                    e.reply('引用的图片地址已失效，请重新发送图片', true)
+                    e.reply('图片地址已失效，请重新发送图片', true)
                     return true
                 }
                 currentImages.push(base64Image);
             }
         }
-
         let msg = e.msg.replace(/^#(ss|SS)/, '').trim()
 
         // 如果有引用的文本,添加两个换行来分隔
@@ -322,6 +335,7 @@ export class SF_Painting extends plugin {
         });
 
         const opt = {
+            sourceImages: sourceImages.length > 0 ? sourceImages : undefined,
             currentImages: currentImages.length > 0 ? currentImages : undefined,
             historyImages: historyImages.length > 0 ? historyImages : undefined
         }
@@ -418,11 +432,19 @@ export class SF_Painting extends plugin {
             // 构造消息内容数组
             let allContent = [];
 
-            // 添加当前引用的图片
-            if (opt.currentImages && opt.currentImages.length > 0) {
+            // 添加\引用的和当前的图片
+            if (config_date.ss_canSendImage && opt.sourceImages && opt.sourceImages.length > 0) {
                 allContent.push({
                     type: "text",
                     text: "当前引用的图片:\n" + input
+                });
+                opt.sourceImages.forEach(image => {
+                    allContent.push({
+                        type: "image_url",
+                        image_url: {
+                            url: `data:image/jpeg;base64,${image}`
+                        }
+                    });
                 });
                 opt.currentImages.forEach(image => {
                     allContent.push({
@@ -440,7 +462,7 @@ export class SF_Painting extends plugin {
             }
 
             // 添加历史图片
-            if (opt.historyImages && opt.historyImages.length > 0) {
+            if (config_date.ss_canSendImage && opt.historyImages && opt.historyImages.length > 0) {
                 allContent.push({
                     type: "text",
                     text: "\n历史对话中的图片:"
@@ -455,7 +477,7 @@ export class SF_Painting extends plugin {
                 });
             }
 
-            // 带图片的消息格式
+            // ss_canSendImage=true --- 带图片的消息格式
             requestBody.messages.push({
                 role: "user",
                 content: allContent
