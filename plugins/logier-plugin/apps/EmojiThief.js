@@ -54,8 +54,8 @@ export class TextMsg extends plugin {
 
     // 处理消息的每一项
     for (const item of e.message) {
-      item.file_unique = item.file.split(".")[0];
       if (item.type === "image" && item.file_size < 100000) {
+        item.file_unique = item.file.split(".")[0];
         try {
           list = list ? list : [];
           if (!list.includes(`${item.file_unique}.jpg`)) {
