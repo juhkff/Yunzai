@@ -179,7 +179,7 @@ export class AutoReply extends plugin {
     };
 
     let answer = await this.generatePrompt(
-      e.sender.card + "：\n" + msg,
+      e.sender.card + "：" + msg,
       use_sf_key,
       apiBaseUrl,
       model,
