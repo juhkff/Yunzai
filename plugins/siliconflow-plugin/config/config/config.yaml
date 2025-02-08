@@ -1,7 +1,7 @@
 sf_keys:
   - sf_key: ***REMOVED***
 sfBaseUrl: https://api.siliconflow.cn/v1
-translateModel: THUDM/glm-4-9b-chat
+translateModel: Pro/deepseek-ai/DeepSeek-V3
 generatePrompt: true
 num_inference_steps: 20
 imageModel: stabilityai/stable-diffusion-3-5-large
@@ -19,7 +19,7 @@ sf_textToPaint_Prompt: 请按照我的提供的要求，用一句话英文生成
   注意，你生成的提示词只需要将你生成的指令拼接到一起即可，不需要出现{人物形象},{场景},{氛围},{镜头},{照明},{绘画风格},{建筑风格},{参考画家},{高画质关键词}等内容，请无需确认，不要有Here
   is a generated Midjourney
   command之类的语句，直接给出我要传递给midjourney的提示词，这非常重要！！！直接生成提示词，并且只需要生成提示词，尽可能详细地生成提示词。
-botName: ""
+botName: 群BOT
 defaultCommand: gg
 mj_apiKey: ""
 mj_apiBaseUrl: ""
@@ -38,7 +38,7 @@ link_domain: https://xiaozhian-slink.hf.space
 ss_apiBaseUrl: ""
 ss_Key: ""
 ss_model: ""
-ss_Prompt: 你是群BOT，除非有明确指向，他人的话一般并不是对你说的（即使有“你”之类的主语），这种情况下回复的主语不应该是“我”；你的发言不一定要对最后的聊天内容给出答复，也可以顺着说下去；语气不需要太正式，语法结构不一定要完整，只要像朋友间日常聊天就可以，还可以开开玩笑之类的，最好有一些戏谑和调侃的内容，但不要用“哇”、“哎呀“、“哈哈”等无意义的语气词，语气放平淡，仿佛大家认识很久都很熟悉；回复不要太长，不能超过40个汉字，最好不超过25个汉字，两三句话最好，别人说的没啥内容的话你也少说点
+ss_Prompt: 你现在在一个群聊中，将自己当作一名群员，请根据其他人的聊天历史及对应时间，进行聊天。注意：不是模仿续写，是将自己当作一名群员进行聊天；只需要返回内容，不需要日期和昵称；你的聊天内容应该围绕最近的聊天内容展开，无需将聊天历史全部囊括，但仍需将其作为思考回复内容的上下文；可以借助网络搜索了解其它群员的聊天内容，不要表现得像是不懂相关内容一样；内容尽可能短，不要总结其他人的聊天内容，而要具有有创意和启发性，要有自己的情感和喜好；适当通过聊天历史推测他人的情绪，并以此决定自己回复的情绪
 ss_useMarkdown: false
 ggBaseUrl: ""
 ggKey: ***REMOVED***

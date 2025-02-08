@@ -33,18 +33,18 @@ export function formatContextForGemini(messages) {
 }
 
 // 保存对话上下文
-export async function saveContext(userId, message) {
+export async function saveContext(groupId, message) {
     try {
         const config = Config.getConfig()
         const maxHistory = config.gg_maxHistoryLength || 20
         const timestamp = Date.now()
-        const key = `sfplugin:llm:${userId}:${timestamp}`
+        const key = `sfplugin:llm:${groupId}:${timestamp}`
 
         // 直接保存消息,不修改content结构
         await redis.set(key, JSON.stringify(message), { EX: 12 * 60 * 60 }) // 12小时过期
 
         // 获取该用户的所有消息
-        const keys = await redis.keys(`sfplugin:llm:${userId}:*`)
+        const keys = await redis.keys(`sfplugin:llm:${groupId}:*`)
         keys.sort((a, b) => {
             const timeA = parseInt(a.split(':')[3])
             const timeB = parseInt(b.split(':')[3])
@@ -66,14 +66,14 @@ export async function saveContext(userId, message) {
     }
 }
 
-// 加载用户历史对话
-export async function loadContext(userId) {
+// 加载群历史对话
+export async function loadContext(groupId) {
     try {
         const config = Config.getConfig()
         const maxHistory = config.gg_maxHistoryLength || 20
 
-        // 获取该用户的所有消息
-        const keys = await redis.keys(`sfplugin:llm:${userId}:*`)
+        // 获取该群的所有消息
+        const keys = await redis.keys(`sfplugin:llm:${groupId}:*`)
         keys.sort((a, b) => {
             const timeA = parseInt(a.split(':')[3])
             const timeB = parseInt(b.split(':')[3])
