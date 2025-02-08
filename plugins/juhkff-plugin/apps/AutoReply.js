@@ -4,7 +4,6 @@ import {
   processMessageWithUrls,
 } from "../utils/tools.js";
 import setting from "../model/setting.js";
-import fs from "fs";
 
 /**
  * 主动群聊插件
@@ -25,8 +24,6 @@ export class AutoReply extends plugin {
         },
       ],
     });
-
-    this.sfPainting = new SF_Painting();
   }
 
   get Config() {
@@ -104,15 +101,19 @@ export class AutoReply extends plugin {
     if (e.atBot || Math.random() < Number(this.Config.ChatRate)) {
       answer = await this.sf_chat(e, msg, sourceImages, currentImages);
     }
-    if (Config.UseContext) {
+    if (this.Config.UseContext) {
       // 保存用户消息
-      await this.saveContext(e.group_id, {
+      let context = {
         role: "user",
         content:
           (await formatDate(Date.now())) + " - " + e.sender.card + "：" + msg,
         extractedContent: extractedContent,
-        imageBase64: currentImages.length > 0 ? currentImages : undefined,
-      });
+      }
+      // 条件满足时保存图片
+      if (this.Config.SaveChatImage) {
+        context.imageBase64 = currentImages.length > 0 ? currentImages : undefined;
+      }
+      await this.saveContext(e.group_id, context);
       // 保存AI回复
       if (!answer) {
         await this.saveContext(e.group_id, {
@@ -135,7 +136,7 @@ export class AutoReply extends plugin {
   async sf_chat(e, msg, sourceImages, currentImages) {
     let use_sf_key = this.Config.SiliconflowKey;
     let apiBaseUrl = this.Config.SiliconflowUrl;
-    let model = this.Config.TranslateModel;
+    let model = this.Config.ChatModel;
     if (!use_sf_key || use_sf_key == "") {
       await e.reply("请在AutoReply.yaml中设置SiliconflowKey", true);
       return true;
@@ -145,7 +146,7 @@ export class AutoReply extends plugin {
       return true;
     }
     if (!model || model == "") {
-      await e.reply("请在AutoReply.yaml中设置TranslateModel", true);
+      await e.reply("请在AutoReply.yaml中设置ChatModel", true);
       return true;
     }
 
@@ -173,11 +174,9 @@ export class AutoReply extends plugin {
       historyImages: historyImages.length > 0 ? historyImages : undefined,
     };
 
-    let answer = await this.generatePrompt(
-      aiMessage,
+    let answer = this.generatePrompt(
+      msg,
       use_sf_key,
-      config_date,
-      true,
       apiBaseUrl,
       model,
       opt,
@@ -185,41 +184,7 @@ export class AutoReply extends plugin {
     );
     // 使用正则表达式去掉字符串 answer 开头的换行符
     answer = answer.replace(/^\n/, "");
-
-    // 获取markdown开关配置，默认为false
-    const useMarkdown = config_date?.ss_useMarkdown ?? false;
-
-    try {
-      if (useMarkdown) {
-        const img = await markdown_screenshot(
-          e.user_id,
-          e.self_id,
-          e.img
-            ? e.img.map((url) => `<img src="${url}" width="256">`).join("\n") +
-                "\n\n" +
-                msg
-            : msg,
-          answer
-        );
-        if (img) {
-          await e.reply({ ...img, origin: true });
-        } else {
-          logger.error("[sf插件] markdown图片生成失败");
-        }
-        e.reply(
-          await common.makeForwardMsg(
-            e,
-            [answer],
-            `${e.sender.card || e.sender.nickname || e.user_id}的对话`
-          )
-        );
-      } else {
-        await e.reply(answer);
-      }
-    } catch (error) {
-      logger.error("[sf插件] 回复消息时发生错误：", error);
-      await e.reply("消息处理失败，请稍后再试", true);
-    }
+    await e.reply(answer);
     return true;
   }
 
@@ -227,8 +192,6 @@ export class AutoReply extends plugin {
    * @description: 自动提示词
    * @param {*} input
    * @param {*} use_sf_key
-   * @param {*} config_date
-   * @param {*} forChat 聊天调用
    * @param {*} apiBaseUrl 使用的API地址
    * @param {*} model 使用的API模型
    * @param {*} opt 可选参数
@@ -237,8 +200,6 @@ export class AutoReply extends plugin {
   async generatePrompt(
     input,
     use_sf_key,
-    config_date,
-    forChat = false,
     apiBaseUrl = "",
     model = "",
     opt = {},
@@ -246,39 +207,40 @@ export class AutoReply extends plugin {
   ) {
     // 构造请求体
     const requestBody = {
-      model: model || config_date.translateModel,
+      model: model || this.Config.ChatModel,
       messages: [
         {
           role: "system",
-          content: !forChat
-            ? config_date.sf_textToPaint_Prompt
-            : config_date.ss_Prompt ||
-              "You are a helpful assistant, you prefer to speak Chinese. Now you are in a chat group, and the following is chat history",
+          content: this.Config.ChatPrompt ||
+            "You are a helpful assistant, you prefer to speak Chinese. Now you are in a chat group, and the following is chat history",
         },
       ],
       stream: false,
-      temperature: 1.7,
+      temperature: 1.5,
     };
 
     // 添加历史对话
     if (historyMessages && historyMessages.length > 0) {
       historyMessages.forEach((msg) => {
-        if (msg.role === "system") {
-          requestBody.messages.push({
-            role: "system",
-            content: msg.content,
-          });
-        }
-        if (msg.role === "user") {
-          requestBody.messages.push({
-            role: "user",
-            content: msg.content,
-          });
-        } else if (msg.role === "assistant") {
-          requestBody.messages.push({
-            role: "assistant",
-            content: msg.content,
-          });
+        // 不是图片时添加
+        if (!msg.imageBase64) {
+          if (msg.role === "system") {
+            requestBody.messages.push({
+              role: "system",
+              content: msg.content,
+            });
+          }
+          if (msg.role === "user") {
+            requestBody.messages.push({
+              role: "user",
+              content: msg.content,
+            });
+          } else if (msg.role === "assistant") {
+            requestBody.messages.push({
+              role: "assistant",
+              content: msg.content,
+            });
+          }
         }
       });
     }
@@ -290,14 +252,14 @@ export class AutoReply extends plugin {
       let allContent = [];
       // 添加\引用的和当前的图片
       if (
-        config_date.ss_canSendImage &&
+        this.Config.ModelCanSendImage &&
         opt.sourceImages &&
         opt.sourceImages.length > 0
       ) {
         opt.sourceImages.forEach((image) => {
           allContent.push({
             type: "text",
-            text: "ref images:\n",
+            text: "引用消息包含的图片:\n",
           });
           allContent.push({
             type: "image_url",
@@ -308,13 +270,13 @@ export class AutoReply extends plugin {
         });
       }
       if (
-        config_date.ss_canSendImage &&
+        this.Config.ModelCanSendImage &&
         opt.currentImages &&
         opt.currentImages.length > 0
       ) {
         allContent.push({
           type: "text",
-          text: "send images:\n",
+          text: "消息正文包含的图片:\n",
         });
         opt.currentImages.forEach((image) => {
           allContent.push({
@@ -332,13 +294,13 @@ export class AutoReply extends plugin {
 
       // 添加历史图片
       if (
-        config_date.ss_canSendImage &&
+        this.Config.ModelCanSendImage &&
         opt.historyImages &&
         opt.historyImages.length > 0
       ) {
         allContent.push({
           type: "text",
-          text: "\n历史对话中的图片:",
+          text: "\n历史对话包含的图片:",
         });
         opt.historyImages.forEach((image) => {
           allContent.push({
@@ -350,13 +312,15 @@ export class AutoReply extends plugin {
         });
       }
 
-      // ss_canSendImage=true --- 带图片的消息格式
-      requestBody.messages.push({
-        role: "user",
-        content: allContent,
-      });
+      // 带图片的消息格式
+      if (this.Config.ModelCanSendImage) {
+        requestBody.messages.push({
+          role: "user",
+          content: allContent,
+        });
+      }
     } catch (error) {
-      logger.error("[sf插件]消息处理失败\n", error);
+      logger.error("[AutoReply]消息处理失败\n", error);
       // 如果处理失败，至少保留用户输入
       requestBody.messages.push({
         role: "user",
@@ -364,10 +328,10 @@ export class AutoReply extends plugin {
       });
     }
 
-    logger.debug("[sf插件]API调用LLM msg：\n" + input);
+    logger.debug("[AutoReply]API调用，正文\n" + input);
     try {
       const response = await fetch(
-        `${apiBaseUrl || config_date.sfBaseUrl}/chat/completions`,
+        `${apiBaseUrl || this.Config.SiliconflowUrl}/chat/completions`,
         {
           method: "POST",
           headers: {
@@ -383,12 +347,12 @@ export class AutoReply extends plugin {
       if (data?.choices?.[0]?.message?.content) {
         return data.choices[0].message.content;
       } else {
-        logger.error("[sf插件]LLM调用错误：\n", JSON.stringify(data, null, 2));
-        return !forChat ? input : "[sf插件]LLM调用错误，详情请查阅控制台。";
+        logger.error("[AutoReply]API调用错误：\n", JSON.stringify(data, null, 2));
+        return "[AutoReply]API调用错误，详情请查阅控制台。";
       }
     } catch (error) {
-      logger.error("[sf插件]LLM调用失败\n", error);
-      return !forChat ? input : "[sf插件]LLM调用失败，详情请查阅控制台。";
+      logger.error("[AutoReply]API调用失败\n", error);
+      return "[AutoReply]API调用失败，详情请查阅控制台。";
     }
   }
 
