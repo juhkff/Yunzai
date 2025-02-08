@@ -4,7 +4,7 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import https from "https";
 import fetch from "node-fetch";
-import setting from "../model/setting.js";
+import axios from 'axios'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -164,6 +164,68 @@ export async function parseSourceImg(e) {
 }
 
 /**
+ * 检查URL是否为不需要提取内容的文件类型
+ * @param {string} url URL地址
+ * @returns {boolean} 是否为不需要提取的文件类型
+ */
+function isSkippedUrl(url) {
+  // 检查常见图片后缀
+  const imageExtensions = /\.(jpg|jpeg|png|gif|bmp|webp|svg|ico|tiff|tif|raw|cr2|nef|arw|dng|heif|heic|avif|jfif|psd|ai)$/i;
+
+  // 检查常见视频后缀
+  const videoExtensions = /\.(mp4|webm|mkv|flv|avi|mov|wmv|rmvb|m4v|3gp|mpeg|mpg|ts|mts)$/i;
+
+  // 检查可执行文件和二进制文件
+  const binaryExtensions = /\.(exe|msi|dll|sys|bin|dat|iso|img|dmg|pkg|deb|rpm|apk|ipa|jar|class|pyc|o|so|dylib)$/i;
+
+  // 检查压缩文件
+  const archiveExtensions = /\.(zip|rar|7z|tar|gz|bz2|xz|tgz|tbz|cab|ace|arc)$/i;
+
+  // 检查是否包含媒体或下载相关路径关键词
+  const skipKeywords = /\/(images?|photos?|pics?|videos?|medias?|downloads?|uploads?|binaries|assets)\//i;
+
+  // 不跳过的URL类型
+  const allowedExtensions = /(\.bilibili.com\/video|b23\.tv)\//i;
+
+  return !allowedExtensions.test(url) &&
+    (imageExtensions.test(url) ||
+      videoExtensions.test(url) ||
+      binaryExtensions.test(url) ||
+      archiveExtensions.test(url) ||
+      skipKeywords.test(url));
+}
+
+/**
+* 从文本中提取URL
+* @param {string} text 需要提取URL的文本
+* @returns {string[]} URL数组
+*/
+function extractUrls(text) {
+  // 更新正则表达式以匹配包含中文和空格的URL
+  const urlRegex = /https?:\/\/[^\s/$.?#].[^\s]*/gi;
+  const matches = text.match(urlRegex) || [];
+
+  // 清理URL并进行解码
+  return matches.map(url => {
+    // 移除URL末尾的标点符号和中文字符
+    let cleanUrl = url.replace(/[.,!?;:，。！？、；：\s\u4e00-\u9fa5]+$/, '');
+    // 处理URL中的空格和中文字符
+    try {
+      // 尝试解码URL，如果已经是解码状态则保持不变
+      cleanUrl = decodeURIComponent(cleanUrl);
+      // 重新编码空格和特殊字符，但保留中文字符
+      cleanUrl = cleanUrl.replace(/\s+/g, '%20')
+        .replace(/[[\](){}|\\^<>]/g, encodeURIComponent);
+    } catch (e) {
+      // 如果解码失败，说明URL可能已经是正确格式，直接返回
+      return cleanUrl;
+    }
+    return cleanUrl;
+  });
+}
+
+
+/**
  * 处理消息中的URL并提取内容
  * @param {string} message 用户消息
  * @param {boolean} attachUrlAnalysis 是否将提取的内容附加到消息中，默认为true
@@ -171,10 +233,10 @@ export async function parseSourceImg(e) {
  */
 export async function processMessageWithUrls(
   message,
-  attachUrlAnalysis = true
+  attachUrlAnalysis = false
 ) {
   const urls = extractUrls(message);
-  if (urls.length === 0) {
+  if (!attachUrlAnalysis || urls.length === 0) {
     return { message, extractedContent: "" };
   }
 
@@ -193,11 +255,9 @@ export async function processMessageWithUrls(
     const content = await extractUrlContent(url);
     if (content) {
       logger.debug(`[URL处理]成功提取URL内容: ${url}`);
-      const urlContent = `\n\n提取的URL内容(${url}):\n内容: ${content.content}`;
+      const urlContent = `\n\n提取的URL内容(${url}):\n${content.content}`;
       extractedContent += urlContent;
-      if (attachUrlAnalysis) {
-        processedMessage += urlContent;
-      }
+      processedMessage += urlContent;
     }
   }
 
@@ -232,3 +292,29 @@ async function extractUrlContent(url) {
     return null;
   }
 }
+
+export async function url2Base64(url, isReturnBuffer = false) {
+  try {
+    const response = await axios.get(url, {
+      responseType: 'arraybuffer',
+      timeout: 60000 // 设置超时时间为60秒
+    });
+
+    const contentLength = response.headers?.['content-length'] || response.headers?.get('size')
+    const maxSizeInBytes = 10 * 1024 * 1024; // 10MB in bytes
+
+    if (contentLength && parseInt(contentLength) > maxSizeInBytes) {
+      logger.error('[sf插件]图片大小超过10MB，请使用大小合适的图片');
+      return null;
+    }
+    // 返回 Buffer
+    if (isReturnBuffer)
+      return Buffer.from(response.data, 'binary');
+
+    return Buffer.from(response.data, 'binary').toString('base64');
+  } catch (error) {
+    logger.error(`[sf插件]下载引用图片错误，可能是图片链接已失效，使用的图片链接：\n` + url);
+    return null;
+  }
+}
+
