@@ -39,7 +39,7 @@ export class AutoReply extends plugin {
     // 借助siliconflow-plugin保存群聊上下文
     // 处理引用消息,获取图片和文本
     await parseSourceImg(e);
-    // e.sourceImg-引用图片；e.sourceMsg-引用文本(markdown格式)；e.img-图片；e.msg-文本
+    // e.sourceImg-引用图片；e.sourceMsg-引用文本；e.img-图片；e.msg-文本
     // 引用图片链接
     let sourceImages = [];
     if (e.sourceImg && e.sourceImg.length > 0) {
@@ -71,7 +71,7 @@ export class AutoReply extends plugin {
       }
     }
     let msg = e.msg.trim();
-    const quotedText = e.sourceMsg ? e.sourceMsg + "\n_____\n" : "";
+    const quotedText = e.sourceMsg ? `[回复 ${e.sourceMsg}] ` : "";
     msg = quotedText + msg;
     // currentImages: img数组; msg: 包含引用消息和URL处理消息的msg
     let extractedContent = "";
