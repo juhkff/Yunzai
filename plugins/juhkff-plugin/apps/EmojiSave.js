@@ -13,7 +13,7 @@ export class EmojiSave extends plugin {
       name: "[扎克芙芙]表情保存",
       dsc: "指定时间（默认三天）内发送过两次（不包含引用）的图片自动保存并随机发送",
       event: "message",
-      priority: 10000 - 1,
+      priority: 2,
       rule: [
         {
           reg: "",
@@ -109,9 +109,9 @@ export class EmojiSave extends plugin {
         if (list.length > 0 && Math.random() < Number(emojiRate)) {
           let randomIndex = Math.floor(Math.random() * list.length);
           emojiUrl = `${emojiSaveDir}/${list[randomIndex]}`;
+          logger.info(`[EmojiSave]发送表情: ${emojiUrl}`);
+          e.reply([segment.image(emojiUrl)]);
         }
-        logger.info(`[EmojiSave]发送表情: ${emojiUrl}`);
-        e.reply([segment.image(emojiUrl)]);
       } catch (error) {
         logger.error(`[EmojiSave]表情发送失败: ${error}`);
       }

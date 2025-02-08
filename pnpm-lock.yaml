@@ -6,7 +6,7 @@ settings:
 
 patchedDependencies:
   log4js@6.9.1:
-    hash: uty2o2bm4njhc3gdt5wlovimtq
+    hash: df819fa27027be7799633279a24fc6c70b7a962d2787a736eb8601ef27b9ab8a
     path: lib/modules/log4js.patch
 
 importers:
@@ -16,6 +16,9 @@ importers:
       art-template:
         specifier: ^4.13.2
         version: 4.13.2
+      axios:
+        specifier: ^1.6.2
+        version: 1.7.9
       chalk:
         specifier: ^5.4.1
         version: 5.4.1
@@ -42,7 +45,7 @@ importers:
         version: 4.17.21
       log4js:
         specifier: ^6.9.1
-        version: 6.9.1(patch_hash=uty2o2bm4njhc3gdt5wlovimtq)
+        version: 6.9.1(patch_hash=df819fa27027be7799633279a24fc6c70b7a962d2787a736eb8601ef27b9ab8a)
       md5:
         specifier: link:lib/modules/md5
         version: link:lib/modules/md5
@@ -212,12 +215,6 @@ importers:
       socket.io:
         specifier: ^4.7.5
         version: 4.8.1
-
-  plugins/siliconflow-plugin:
-    dependencies:
-      axios:
-        specifier: ^1.6.2
-        version: 1.7.9
 
 packages:
 
@@ -5462,7 +5459,7 @@ snapshots:
 
   lodash@4.17.21: {}
 
-  log4js@6.9.1(patch_hash=uty2o2bm4njhc3gdt5wlovimtq):
+  log4js@6.9.1(patch_hash=df819fa27027be7799633279a24fc6c70b7a962d2787a736eb8601ef27b9ab8a):
     dependencies:
       date-format: 4.0.14
       debug: 4.4.0

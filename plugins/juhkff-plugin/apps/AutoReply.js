@@ -2,8 +2,11 @@ import {
   parseSourceImg,
   formatDate,
   processMessageWithUrls,
+  url2Base64
 } from "../utils/tools.js";
 import setting from "../model/setting.js";
+import fetch from "node-fetch";
+
 
 /**
  * 主动群聊插件
@@ -14,8 +17,9 @@ export class AutoReply extends plugin {
   constructor() {
     super({
       name: "[扎克芙芙]主动群聊",
-      event: "主动群聊",
-      priority: 10000 - 2,
+      dsc: "主动群聊",
+      event: "message",
+      priority: 1,
       rule: [
         {
           reg: "",
@@ -73,12 +77,11 @@ export class AutoReply extends plugin {
     let extractedContent = "";
     try {
       // 根据是否为图片模式决定是否在消息中显示提取的内容
-      const { processedMsg, extracted } = await processMessageWithUrls(
+      const { message, extractedContent } = await processMessageWithUrls(
         msg,
         this.Config.AttachUrlAnalysis
       );
-      msg = processedMsg;
-      extractedContent = extracted;
+      msg = message;
 
       if (extractedContent) {
         logger.debug(`[AutoReply]URL处理成功`);
@@ -100,6 +103,7 @@ export class AutoReply extends plugin {
     // 如果@了bot，就直接回复
     if (e.atBot || Math.random() < Number(this.Config.ChatRate)) {
       answer = await this.sf_chat(e, msg, sourceImages, currentImages);
+      await e.reply(answer);
     }
     if (this.Config.UseContext) {
       // 保存用户消息
@@ -115,14 +119,14 @@ export class AutoReply extends plugin {
       }
       await this.saveContext(e.group_id, context);
       // 保存AI回复
-      if (!answer) {
+      if (answer) {
         await this.saveContext(e.group_id, {
           role: "assistant",
           content: answer,
         });
       }
     }
-    return true;
+    return false;
   }
 
   /**
@@ -174,8 +178,8 @@ export class AutoReply extends plugin {
       historyImages: historyImages.length > 0 ? historyImages : undefined,
     };
 
-    let answer = this.generatePrompt(
-      msg,
+    let answer = await this.generatePrompt(
+      e.sender.card + "：\n" + msg,
       use_sf_key,
       apiBaseUrl,
       model,
@@ -184,8 +188,7 @@ export class AutoReply extends plugin {
     );
     // 使用正则表达式去掉字符串 answer 开头的换行符
     answer = answer.replace(/^\n/, "");
-    await e.reply(answer);
-    return true;
+    return answer;
   }
 
   /**
@@ -312,13 +315,11 @@ export class AutoReply extends plugin {
         });
       }
 
-      // 带图片的消息格式
-      if (this.Config.ModelCanSendImage) {
-        requestBody.messages.push({
-          role: "user",
-          content: allContent,
-        });
-      }
+      // 兼容带图片的消息格式
+      requestBody.messages.push({
+        role: "user",
+        content: allContent,
+      });
     } catch (error) {
       logger.error("[AutoReply]消息处理失败\n", error);
       // 如果处理失败，至少保留用户输入
