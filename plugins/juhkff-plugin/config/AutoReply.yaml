@@ -1,0 +1,16 @@
+# 是否解析消息中包含的链接
+AttachUrlAnalysis: true
+# 是否使用上下文
+UseContext: true
+# 上下文长度
+MaxHistoryLength: 20
+# Siliconflow Key
+SiliconflowKey: ***REMOVED***
+# Siliconflow Url
+SiliconflowUrl: https://api.siliconflow.cn/v1
+# Siliconflow 的 AI 对话模型
+TranslateModel: Pro/deepseek-ai/DeepSeek-R1
+# 触发聊天的概率
+ChatRate: 0.2
+# 是否将图片（包括发送的表情等一切图片）保存到上下文，AI具有图像分析功能时才可使用
+AnalyzeImage: false
