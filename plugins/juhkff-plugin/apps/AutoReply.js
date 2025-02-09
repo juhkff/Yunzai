@@ -56,6 +56,7 @@ export class AutoReply extends plugin {
       }
     }
     let currentImages = [];
+    if (!e.msg || e.msg == "") return false;
     // 为头像时删除对应img（不需要该功能）
     if (e.img && e.img.length > 0) {
       // 记录获取到的图片链接
@@ -103,7 +104,11 @@ export class AutoReply extends plugin {
     // 如果@了bot，就直接回复
     if (e.atBot || Math.random() < Number(this.Config.ChatRate)) {
       answer = await this.sf_chat(e, msg, sourceImages, currentImages);
-      await e.reply(answer);
+      if (!e.atBot && (!answer || answer.startsWith("[AutoReply]"))) {
+        // 如果自主发言失败不提示
+      } else {
+        await e.reply(answer);
+      }
     }
     if (this.Config.UseContext) {
       // 保存用户消息
@@ -329,7 +334,7 @@ export class AutoReply extends plugin {
       });
     }
 
-    logger.debug("[AutoReply]API调用，正文\n" + input);
+    logger.mark(`\n[AutoReply]API调用，请求内容：${requestBody.messages}`);
     try {
       const response = await fetch(
         `${apiBaseUrl || this.Config.SiliconflowUrl}/chat/completions`,
