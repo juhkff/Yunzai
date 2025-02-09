@@ -334,7 +334,7 @@ export class AutoReply extends plugin {
       });
     }
 
-    logger.mark(`\n[AutoReply]API调用，请求内容：${requestBody.messages}`);
+    logger.mark(`\n[AutoReply]API调用，请求内容：${JSON.stringify(requestBody.messages, null, 2)}`);
     try {
       const response = await fetch(
         `${apiBaseUrl || this.Config.SiliconflowUrl}/chat/completions`,
