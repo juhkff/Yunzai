@@ -156,7 +156,7 @@ export async function parseSourceImg(e) {
       const lines = text.join("\n").split("\n");
       const quotedLines = lines.map((line) => `> ${line}`).join("\n");
       e.sourceMsg = senderNickname
-        ? `> ##### ${senderNickname}：\n> ---\n${quotedLines}`
+        ? `${senderNickname}：${quotedLines}`
         : quotedLines;
     }
   }
