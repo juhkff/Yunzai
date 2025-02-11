@@ -49,7 +49,7 @@ RUN echo '#!/bin/sh' > /root/start.sh && \
     echo '  git clone https://juhkff:$GITEE_TOKEN@gitee.com/juhkff/Yunzai.git /root/Yunzai' >> /root/start.sh && \
     echo '  cd /root/Yunzai' >> /root/start.sh && \
     echo 'else' >> /root/start.sh && \
-    echo '  cd /root/Yunzai && git pull' >> /root/start.sh && \
+    echo '  cd /root/Yunzai && git restore . && git pull' >> /root/start.sh && \
     echo 'fi' >> /root/start.sh && \
     echo 'pnpm i && pnpm puppeteer browsers install chrome' >> /root/start.sh && \
     echo 'node .' >> /root/start.sh && \
