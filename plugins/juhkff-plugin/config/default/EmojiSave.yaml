@@ -1,15 +1,15 @@
-# 指定相关群的回复概率、发送偷的图的概率，格式如下
+# 指定特定群的回复概率、发送偷的图的概率，格式如下
 # GroupRate:
 #   - GroupList:
-#       - ***REMOVED***
+#       - xxxxxxxxx (群号1)
 #     ReplyRate: 0.1
 #     EmojiRate: 0.2
 #   - GroupList:
-#       - ***REMOVED***
+#       - xxxxxxxxx (群号2)
 #     ReplyRate: 0.6
 #     EmojiRate: 0.2
 #   - GroupList:
-#       - ***REMOVED***
+#       - xxxxxxxxx (群号...)
 #     ReplyRate: 0.2
 #     EmojiRate: 0.2
 GroupRate:
