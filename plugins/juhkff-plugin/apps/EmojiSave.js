@@ -118,6 +118,6 @@ export class EmojiSave extends plugin {
     }
 
     // 继续执行后续的插件
-    return true;
+    return false;
   }
 }

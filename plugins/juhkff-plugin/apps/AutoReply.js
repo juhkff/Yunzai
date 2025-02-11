@@ -2,11 +2,10 @@ import {
   parseSourceImg,
   formatDate,
   processMessageWithUrls,
-  url2Base64
+  url2Base64,
 } from "../utils/tools.js";
 import setting from "../model/setting.js";
 import fetch from "node-fetch";
-
 
 /**
  * 主动群聊插件
@@ -22,7 +21,7 @@ export class AutoReply extends plugin {
       priority: 1,
       rule: [
         {
-          reg: "",
+          reg: "^((?!#).)*$", // 匹配所有非#开头的文本
           fnc: "autoReply",
           log: false,
         },
@@ -38,14 +37,14 @@ export class AutoReply extends plugin {
     // 避免重复保存上下文
     // 借助siliconflow-plugin保存群聊上下文
     // 处理引用消息,获取图片和文本
-    let chatDate = await formatDate(Date.now())
+    let chatDate = await formatDate(Date.now());
     await parseSourceImg(e);
     // e.sourceImg-引用图片；e.sourceMsg-引用文本；e.img-图片；e.msg-文本
     // 引用图片链接
     let sourceImages = [];
     if (e.sourceImg && e.sourceImg.length > 0) {
       // 记录获取到的图片链接
-      logger.mark(`[AutoReply]获取到引用图片链接:\n${e.sourceImg.join("\n")}`);
+      logger.info(`[AutoReply]获取到引用图片链接:\n${e.sourceImg.join("\n")}`);
       // 获取所有图片数据
       for (const imgUrl of e.sourceImg) {
         const base64Image = await url2Base64(imgUrl);
@@ -61,7 +60,7 @@ export class AutoReply extends plugin {
     // 为头像时删除对应img（不需要该功能）
     if (e.img && e.img.length > 0) {
       // 记录获取到的图片链接
-      logger.mark(`[AutoReply]获取到图片链接:\n${e.img.join("\n")}`);
+      logger.info(`[AutoReply]获取到图片链接:\n${e.img.join("\n")}`);
       // 获取所有图片数据
       for (const imgUrl of e.img) {
         const base64Image = await url2Base64(imgUrl);
@@ -86,9 +85,9 @@ export class AutoReply extends plugin {
       msg = message;
 
       if (extractedContent) {
-        logger.debug(`[AutoReply]URL处理成功`);
+        logger.info(`[AutoReply]URL处理成功`);
       } else {
-        logger.debug(`[AutoReply]消息中未发现需要处理的URL`);
+        logger.info(`[AutoReply]消息中未发现需要处理的URL`);
       }
     } catch (error) {
       logger.error(
@@ -117,10 +116,11 @@ export class AutoReply extends plugin {
         role: "user",
         content: chatDate + " - " + e.sender.card + "：" + msg,
         extractedContent: extractedContent,
-      }
+      };
       // 条件满足时保存图片
       if (this.Config.SaveChatImage) {
-        context.imageBase64 = currentImages.length > 0 ? currentImages : undefined;
+        context.imageBase64 =
+          currentImages.length > 0 ? currentImages : undefined;
       }
       await this.saveContext(e.group_id, context);
       // 保存AI回复
@@ -163,7 +163,7 @@ export class AutoReply extends plugin {
     let historyMessages = [];
     if (this.Config.UseContext) {
       historyMessages = await this.loadContext(e.group_id);
-      logger.mark(`[AutoReply]加载历史对话: ${historyMessages.length} 条`);
+      logger.info(`[AutoReply]加载历史对话: ${historyMessages.length} 条`);
     }
 
     // 收集历史图片
@@ -219,7 +219,8 @@ export class AutoReply extends plugin {
       messages: [
         {
           role: "system",
-          content: this.Config.ChatPrompt ||
+          content:
+            this.Config.ChatPrompt ||
             "You are a helpful assistant, you prefer to speak Chinese. Now you are in a chat group, and the following is chat history",
         },
       ],
@@ -334,7 +335,13 @@ export class AutoReply extends plugin {
       });
     }
 
-    logger.mark(`\n[AutoReply]API调用，请求内容：${JSON.stringify(requestBody.messages, null, 2)}`);
+    logger.mark(
+      `\n[AutoReply]API调用，请求内容：${JSON.stringify(
+        requestBody.messages,
+        null,
+        2
+      )}`
+    );
     try {
       const response = await fetch(
         `${apiBaseUrl || this.Config.SiliconflowUrl}/chat/completions`,
@@ -353,7 +360,10 @@ export class AutoReply extends plugin {
       if (data?.choices?.[0]?.message?.content) {
         return data.choices[0].message.content;
       } else {
-        logger.error("[AutoReply]API调用错误：\n", JSON.stringify(data, null, 2));
+        logger.error(
+          "[AutoReply]API调用错误：\n",
+          JSON.stringify(data, null, 2)
+        );
         return "[AutoReply]API调用错误，详情请查阅控制台。";
       }
     } catch (error) {
