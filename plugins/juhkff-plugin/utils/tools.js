@@ -369,7 +369,7 @@ export async function getXML(url) {
 
 export async function templateToPic(templatePath, data, viewport) {
   // 启动浏览器
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
   const page = await browser.newPage();
 
   // 设置视口大小
