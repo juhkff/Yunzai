@@ -1,9 +1,0 @@
-# 定时发送日报时间cron表达式，每天12点推送
-DailyReportTime: "0 0 12 * * ?"
-# alapi_token
-AlapiToken: ""
-# 新闻是否显示完全信息
-DailyReportFullShow: true
-# 推送群组列表
-PushGroupList:
-- ***REMOVED***
