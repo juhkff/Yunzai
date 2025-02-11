@@ -1,5 +1,4 @@
 import YAML from "yaml";
-import chokidar from "chokidar";
 import fs from "node:fs";
 import { _path, pluginResources, pluginRoot } from "./path.js";
 
@@ -16,8 +15,17 @@ class Setting {
   // 获取对应模块用户配置
   getConfig(app) {
     if (!fs.existsSync(`${this.configPath}${app}.yaml`)) {
-      logger.error(`插件缺失配置文件${app}.yaml`);
-      return false;
+      if (!fs.existsSync(`${this.configPath}default/${app}.yaml`)) {
+        logger.error(`插件缺失配置文件${app}.yaml`);
+        return false;
+      } else {
+        // 复制 default 内对应的 yaml 文件到 config/*.yaml 中
+        fs.copyFileSync(
+          `${this.configPath}default/${app}.yaml`,
+          `${this.configPath}${app}.yaml`
+        );
+        logger.info(`已复制 ${app} 默认配置文件`);
+      }
     }
     let file = `${this.configPath}${app}.yaml`;
     if (this.config[app]) return this.config[app];
