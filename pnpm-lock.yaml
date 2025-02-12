@@ -16,9 +16,6 @@ importers:
       art-template:
         specifier: ^4.13.2
         version: 4.13.2
-      axios:
-        specifier: ^1.6.2
-        version: 1.7.9
       chalk:
         specifier: ^5.4.1
         version: 5.4.1
@@ -46,9 +43,6 @@ importers:
       log4js:
         specifier: ^6.9.1
         version: 6.9.1(patch_hash=uty2o2bm4njhc3gdt5wlovimtq)
-      lunar-javascript:
-        specifier: ^1.6.13
-        version: 1.6.13
       md5:
         specifier: link:lib/modules/md5
         version: link:lib/modules/md5
@@ -88,9 +82,6 @@ importers:
       ws:
         specifier: ^8.18.0
         version: 8.18.0
-      xmldom:
-        specifier: ^0.6.0
-        version: 0.6.0
       yaml:
         specifier: ^2.6.1
         version: 2.7.0
@@ -221,6 +212,18 @@ importers:
       socket.io:
         specifier: ^4.7.5
         version: 4.8.1
+
+  plugins/juhkff-plugin:
+    dependencies:
+      axios:
+        specifier: ^1.6.2
+        version: 1.7.9
+      lunar-javascript:
+        specifier: ^1.6.13
+        version: 1.6.13
+      xmldom:
+        specifier: ^0.6.0
+        version: 0.6.0
 
 packages:
 

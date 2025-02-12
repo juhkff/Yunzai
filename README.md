@@ -28,3 +28,7 @@ docker run -d -p 2536:2536 -p 2877:2877 --name qq-bot -e GITEE_TOKEN=GITEE密钥
 ```console
 rm /var/lib/docker/containers/<containerId>/<containerId>-json.log
 ```
+
+# ociq 文档（开发用）
+
+[https://oicqjs.github.io/oicq/](https://oicqjs.github.io/oicq/)

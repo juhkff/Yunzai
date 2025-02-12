@@ -6,3 +6,4 @@ node_modules
 /temp
 /dump.rdb
 /.vscode
+pnpm-lock.yaml

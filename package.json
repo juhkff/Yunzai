@@ -38,10 +38,7 @@
     "strip-ansi": "^7.1.0",
     "ulid": "^2.3.0",
     "ws": "^8.18.0",
-    "yaml": "^2.6.1",
-    "axios": "^1.6.2",
-    "lunar-javascript": "^1.6.13",
-    "xmldom": "^0.6.0"
+    "yaml": "^2.6.1"
   },
   "devDependencies": {
     "@types/node": "^22.10.5",
