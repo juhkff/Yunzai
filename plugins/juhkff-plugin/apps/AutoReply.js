@@ -3,8 +3,8 @@ import {
   formatDate,
   processMessageWithUrls,
   url2Base64,
-} from "../utils/tools.js";
-import setting from "../model/setting.js";
+} from "#juhkff.tools";
+import setting from "#juhkff.setting";
 import fetch from "node-fetch";
 
 /**

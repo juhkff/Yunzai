@@ -1,7 +1,7 @@
-import { downloadFile } from "../utils/tools.js";
-import setting from "../model/setting.js";
-import fs, { readdirSync } from "fs";
-import { _path, pluginResources, pluginRoot } from "../model/path.js";
+import { downloadFile } from "#juhkff.tools";
+import setting from "#juhkff.setting";
+import fs from "fs";
+import { _path, pluginResources, pluginRoot } from "#juhkff.path";
 
 /**
  * 表情保存插件

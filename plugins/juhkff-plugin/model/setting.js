@@ -1,6 +1,6 @@
 import YAML from "yaml";
 import fs from "node:fs";
-import { _path, pluginResources, pluginRoot } from "./path.js";
+import { _path, pluginResources, pluginRoot } from "#juhkff.path";
 
 class Setting {
   constructor() {
