@@ -7,14 +7,14 @@ UseContext: true
 # 上下文长度
 MaxHistoryLength: 5
 
-# Siliconflow Key
-SiliconflowKey: 
+# AI接口选择，可选项：deepseek,siliconflow
+ChatApi: deepseek
 
-# Siliconflow Url
-SiliconflowUrl: https://api.siliconflow.cn/v1
+# Api Key
+ApiKey: 
 
-# Siliconflow 的 AI 对话模型
-ChatModel: Pro/deepseek-ai/DeepSeek-R1
+# 模型选择
+ChatModel: deepseek-chat
 
 # 触发聊天的概率
 ChatRate: 0.1
@@ -43,6 +43,7 @@ TextToPaintPrompt:
   is a generated Midjourney
   command之类的语句，直接给出我要传递给midjourney的提示词，这非常重要！！！直接生成提示词，并且只需要生成提示词，尽可能详细地生成提示词。
 
+# 群聊预设
 ChatPrompt:
   你现在在一个群聊中，将自己当作一名群员，请根据其他人的聊天历史、发言人昵称及对应时间，进行聊天。
   注意：不是模仿续写，是将自己当作一名群员进行聊天，不需要解释思考过程，生成的内容不需包含日期和昵称，只需要生成最终的聊天内容；
