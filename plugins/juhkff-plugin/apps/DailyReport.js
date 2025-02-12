@@ -1,8 +1,8 @@
-import { get, getXML, templateToPic } from "../utils/tools.js";
-import { getFestivalsDates, formatDate } from "../utils/lunar.js";
-import setting from "../model/setting.js";
-import { pluginResources } from "../model/path.js";
-import path from "path";
+import { get, getXML, templateToPic } from "#juhkff.tools";
+import { getFestivalsDates, formatDate } from "#juhkff.lunar";
+import setting from "#juhkff.setting";
+import { pluginResources } from "#juhkff.path";
+import path from "#juhkff.path";
 import fs from "fs";
 
 export class DailyReport extends plugin {
