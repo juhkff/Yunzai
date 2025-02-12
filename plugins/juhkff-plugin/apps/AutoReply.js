@@ -29,6 +29,13 @@ export class AutoReply extends plugin {
     });
   }
 
+  get ApiList() {
+    return {
+      deepseek: "https://api.deepseek.com/",
+      siliconflow: "https://api.siliconflow.cn/v1",
+    };
+  }
+
   get Config() {
     return setting.getConfig("AutoReply");
   }
@@ -103,7 +110,7 @@ export class AutoReply extends plugin {
     let answer = undefined;
     // 如果@了bot，就直接回复
     if (e.atBot || Math.random() < Number(this.Config.ChatRate)) {
-      answer = await this.sf_chat(e, msg, sourceImages, currentImages);
+      answer = await this.generate_answer(e, msg, sourceImages, currentImages);
       if (!e.atBot && (!answer || answer.startsWith("[AutoReply]"))) {
         // 如果自主发言失败不提示
       } else {
@@ -142,16 +149,17 @@ export class AutoReply extends plugin {
    * @param {*} currentImages 正文图片数组
    * @returns answer 回复内容
    */
-  async sf_chat(e, msg, sourceImages, currentImages) {
-    let use_sf_key = this.Config.SiliconflowKey;
-    let apiBaseUrl = this.Config.SiliconflowUrl;
+  async generate_answer(e, msg, sourceImages, currentImages) {
+    var chatApi = this.Config.ChatApi;
+    var apiBaseUrl = this.ApiList[chatApi];
+    let apiKey = this.Config.ApiKey;
     let model = this.Config.ChatModel;
-    if (!use_sf_key || use_sf_key == "") {
-      await e.reply("请在AutoReply.yaml中设置SiliconflowKey", true);
+    if (!apiKey || apiKey == "") {
+      await e.reply("请在AutoReply.yaml中设置ApiKey", true);
       return true;
     }
     if (!apiBaseUrl || apiBaseUrl == "") {
-      await e.reply("请在AutoReply.yaml中设置SiliconflowUrl", true);
+      await e.reply("请在AutoReply.yaml中设置有效的AI接口", true);
       return true;
     }
     if (!model || model == "") {
@@ -183,9 +191,9 @@ export class AutoReply extends plugin {
       historyImages: historyImages.length > 0 ? historyImages : undefined,
     };
 
-    let answer = await this.generatePrompt(
+    let answer = await this.sendChatRequest(
       e.sender.card + "：" + msg,
-      use_sf_key,
+      apiKey,
       apiBaseUrl,
       model,
       opt,
@@ -205,7 +213,7 @@ export class AutoReply extends plugin {
    * @param {*} opt 可选参数
    * @return {string}
    */
-  async generatePrompt(
+  async sendChatRequest(
     input,
     use_sf_key,
     apiBaseUrl = "",
@@ -320,12 +328,18 @@ export class AutoReply extends plugin {
           });
         });
       }
-
-      // 兼容带图片的消息格式
-      requestBody.messages.push({
-        role: "user",
-        content: allContent,
-      });
+      if (this.Config.ModelCanSendImage) {
+        // 兼容带图片的消息格式
+        requestBody.messages.push({
+          role: "user",
+          content: allContent,
+        });
+      } else {
+        requestBody.messages.push({
+          role: "user",
+          content: input,
+        });
+      }
     } catch (error) {
       logger.error("[AutoReply]消息处理失败\n", error);
       // 如果处理失败，至少保留用户输入
@@ -343,17 +357,14 @@ export class AutoReply extends plugin {
       )}`
     );
     try {
-      const response = await fetch(
-        `${apiBaseUrl || this.Config.SiliconflowUrl}/chat/completions`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${use_sf_key}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestBody),
-        }
-      );
+      const response = await fetch(`${apiBaseUrl}/chat/completions`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${use_sf_key}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
 
       const data = await response.json();
 
