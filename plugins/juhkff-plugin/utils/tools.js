@@ -6,7 +6,6 @@ import axios from "axios";
 import { DOMParser } from "xmldom";
 import puppeteer from "puppeteer";
 
-
 export async function downloadFile(url, dest) {
   return new Promise((resolve, reject) => {
     const file = fs.createWriteStream(dest);
@@ -369,7 +368,7 @@ export async function getXML(url) {
 
 export async function templateToPic(templatePath, data, viewport) {
   // 启动浏览器
-  const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
+  const browser = await puppeteer.launch({ args: ["--no-sandbox"] });
   const page = await browser.newPage();
 
   // 设置视口大小
@@ -399,8 +398,10 @@ export async function templateToPic(templatePath, data, viewport) {
     const biliContainer = document.querySelector(".bili-border");
     biliContainer.innerHTML = `      <div class="moyu-title" style="left: 128px;"><img src="./res/icon/bilibili.png" class="title-img">B站热点</div>
       ${data.data_bili
-        .map(
-          (s) => `<p class="bili-text"><span class="hot-text">热</span>${s}</p>`
+        .map((s) =>
+          s.icon
+            ? `<p class="bili-text"><img class="hot-img" src="${s.icon}" />${s.keyword}</p>`
+            : `<p class="bili-text"><img class="hot-img" style="margin-right: 0;" />${s.keyword}</p>`
         )
         .join("")}    `;
 

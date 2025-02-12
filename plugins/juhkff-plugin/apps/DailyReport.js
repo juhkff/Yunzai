@@ -79,7 +79,10 @@ export class DailyReport extends plugin {
     }
     for (var each in biliResp.list) {
       if (biliResp.list.hasOwnProperty(each)) {
-        bili.push(biliResp.list[each].keyword);
+        bili.push({
+          keyword: biliResp.list[each].keyword,
+          icon: biliResp.list[each].icon,
+        });
       }
     }
     // 获取所有 <item> 元素

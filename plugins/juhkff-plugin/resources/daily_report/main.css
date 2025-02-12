@@ -209,6 +209,13 @@ body {
   border-radius: 2px;
 }
 
+.hot-img {
+  height: 17px;
+  width: auto;
+  object-fit: contain; /*保持宽高比*/
+  margin-right: 5px;
+}
+
 .two-border {
   border: #e5aabe 3px solid;
   width: 512px;
@@ -220,10 +227,9 @@ body {
   background-color: #fffbfc;
 }
 
-.two-border-border  {
+.two-border-border {
   float: left;
 }
-
 
 .anime-border {
   height: 170px;
