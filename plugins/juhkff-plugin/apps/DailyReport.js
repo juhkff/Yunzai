@@ -2,7 +2,7 @@ import { get, getXML, templateToPic } from "#juhkff.tools";
 import { getFestivalsDates, formatDate } from "#juhkff.lunar";
 import setting from "#juhkff.setting";
 import { pluginResources } from "#juhkff.path";
-import path from "#juhkff.path";
+import path from "path";
 import fs from "fs";
 
 export class DailyReport extends plugin {
