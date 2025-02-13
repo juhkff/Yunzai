@@ -5,7 +5,7 @@ import {
   url2Base64,
 } from "#juhkff.tools";
 import setting from "#juhkff.setting";
-import { ChatInterface, DeepSeek_R1 } from "../model/chat_api.js";
+import { ChatInterface, chatMap, DeepSeek } from "../model/chat_api.js";
 
 /**
  * 主动群聊插件
@@ -193,6 +193,7 @@ export class AutoReply extends plugin {
 
     let answer = await this.sendChatRequest(
       e.sender.card + "：" + msg,
+      chatApi,
       apiKey,
       apiBaseUrl,
       model,
@@ -207,6 +208,7 @@ export class AutoReply extends plugin {
   /**
    * @description: 自动提示词
    * @param {*} input
+   * @param {*} chatApi 使用的AI接口
    * @param {*} apiKey
    * @param {*} apiBaseUrl 使用的API地址
    * @param {*} model 使用的API模型
@@ -215,23 +217,28 @@ export class AutoReply extends plugin {
    */
   async sendChatRequest(
     input,
+    chatApi,
     apiKey,
     apiBaseUrl = "",
     model = "",
     opt = {},
     historyMessages = []
   ) {
-    if (model == "deepseek-reasoner") {
-      var deepSeekInstance = new DeepSeek_R1();
-      const result = await deepSeekInstance[ChatInterface.generateRequest](
-        apiKey,
-        apiBaseUrl,
-        model,
-        input,
-        historyMessages
-      );
-      return result;
+    var Constructor = chatMap[chatApi];
+    var chatInstance;
+    if (Constructor) {
+      chatInstance = new Constructor();
+    } else {
+      return "[AutoReply]请在AutoReply.yaml中设置有效的AI接口";
     }
+    var result = await chatInstance[ChatInterface.generateRequest](
+      apiKey,
+      apiBaseUrl,
+      model,
+      input,
+      historyMessages
+    );
+    return result;
   }
 
   // 保存对话上下文

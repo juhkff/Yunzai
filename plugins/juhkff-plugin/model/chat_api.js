@@ -16,7 +16,7 @@ export const ChatInterface = {
  * @param {*} model 使用的API模型
  * @param {*} input 当前聊天输入
  * @param {*} historyMessages 聊天历史记录
- * @param {*} opt 图片参数
+ * @param {*} image_list 图片列表
  * @param {*} image_type 是否可传入图片
  */
 ChatInterface.generateRequest = async function (
@@ -25,18 +25,18 @@ ChatInterface.generateRequest = async function (
   model = "",
   input,
   historyMessages = [],
-  opt = {},
+  image_list = {},
   image_type = false
 ) {};
 
-class DefaultChatRequest {
+export class DefaultChatRequest {
   async [ChatInterface.generateRequest](
     apiKey,
     apiBaseUrl,
     model,
     input,
     historyMessages,
-    opt = {},
+    image_list = {},
     image_type = false
   ) {
     // 构造请求体
@@ -86,8 +86,12 @@ class DefaultChatRequest {
       // 构造消息内容数组
       let allContent = [];
       // 添加\引用的和当前的图片
-      if (image_type && opt.sourceImages && opt.sourceImages.length > 0) {
-        opt.sourceImages.forEach((image) => {
+      if (
+        image_type &&
+        image_list.sourceImages &&
+        image_list.sourceImages.length > 0
+      ) {
+        image_list.sourceImages.forEach((image) => {
           allContent.push({
             type: "text",
             text: "引用消息包含的图片:\n",
@@ -100,12 +104,16 @@ class DefaultChatRequest {
           });
         });
       }
-      if (image_type && opt.currentImages && opt.currentImages.length > 0) {
+      if (
+        image_type &&
+        image_list.currentImages &&
+        image_list.currentImages.length > 0
+      ) {
         allContent.push({
           type: "text",
           text: "消息正文包含的图片:\n",
         });
-        opt.currentImages.forEach((image) => {
+        image_list.currentImages.forEach((image) => {
           allContent.push({
             type: "image_url",
             image_url: {
@@ -120,12 +128,16 @@ class DefaultChatRequest {
       });
 
       // 添加历史图片
-      if (image_type && opt.historyImages && opt.historyImages.length > 0) {
+      if (
+        image_type &&
+        image_list.historyImages &&
+        image_list.historyImages.length > 0
+      ) {
         allContent.push({
           type: "text",
           text: "\n历史对话包含的图片:",
         });
-        opt.historyImages.forEach((image) => {
+        image_list.historyImages.forEach((image) => {
           allContent.push({
             type: "image_url",
             image_url: {
@@ -190,31 +202,162 @@ class DefaultChatRequest {
   }
 }
 
-export class DeepSeek_R1 {
+export class DeepSeek {
+  constructor() {
+    // 模型映射
+    this.modelMap = {
+      "deepseek-chat": this.deepseek_chat.bind(this),
+      "deepseek-reasoner": this.deepseek_reasoner.bind(this),
+    };
+  }
+
   async [ChatInterface.generateRequest](
     apiKey,
     apiBaseUrl,
     model,
     input,
     historyMessages,
-    opt = {},
+    image_list = {},
     image_type = false
   ) {
-    // 构造请求体
-    const requestBody = {
-      model: model,
-      messages: [
-        {
-          role: "system",
-          content:
-            getConfig().ChatPrompt ||
-            "You are a helpful assistant, you prefer to speak Chinese. Now you are in a chat group, and the following is chat history",
+    if (!this.modelMap[model]) {
+      logger.error("[AutoReply]不支持的模型：" + model);
+      return "[AutoReply]不支持的模型：" + model;
+    }
+    var request = {
+      url: `${apiBaseUrl}/chat/completions`,
+      options: {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
         },
-      ],
-      stream: false,
-      temperature: 1.5,
+        body: {
+          model: model,
+          messages: [],
+          stream: false,
+          temperature: 1.5,
+        },
+      },
     };
 
+    var response = await this.modelMap[model](
+      JSON.parse(JSON.stringify(request)),
+      input,
+      historyMessages,
+      image_list,
+      image_type
+    );
+    // 如果 DeepSeek-R1 失败，尝试使用 DeepSeek-V3
+
+    if (
+      typeof response === "string" &&
+      response.startsWith("[AutoReply]DeepSeek-R1调用失败")
+    ) {
+      request.options.body.model = "deepseek-chat";
+      response = await this.deepseek_chat(
+        JSON.parse(JSON.stringify(request)),
+        input,
+        historyMessages,
+        image_list,
+        image_type
+      );
+    }
+    return response;
+  }
+
+  async deepseek_chat(
+    request,
+    input,
+    historyMessages,
+    image_list = {},
+    image_type = false
+  ) {
+    // 添加消息内容
+    request.options.body.messages.push({
+      role: "system",
+      content:
+        getConfig().ChatPrompt ||
+        "You are a helpful assistant, you prefer to speak Chinese. Now you are in a chat group, and the following is chat history",
+    });
+    // 添加历史对话
+    if (historyMessages && historyMessages.length > 0) {
+      historyMessages.forEach((msg) => {
+        // 不是图片时添加
+        if (!msg.imageBase64) {
+          if (msg.role === "system") {
+            request.options.body.messages.push({
+              role: "system",
+              content: msg.content,
+            });
+          }
+          if (msg.role === "user") {
+            request.options.body.messages.push({
+              role: "user",
+              content: msg.content,
+            });
+          } else if (msg.role === "assistant") {
+            request.options.body.messages.push({
+              role: "assistant",
+              content: msg.content,
+            });
+          }
+        }
+      });
+      // 添加当前对话
+      request.options.body.messages.push({
+        role: "user",
+        content: input,
+      });
+    }
+    logger.mark(
+      `\n[AutoReply]DeepSeek-V3 API调用，请求内容：${JSON.stringify(
+        request,
+        null,
+        2
+      )}`
+    );
+    var response;
+    try {
+      request.options.body = JSON.stringify(request.options.body);
+      response = await fetch(request.url, request.options);
+
+      const data = await response.json();
+
+      if (data?.choices?.[0]?.message?.content) {
+        return data.choices[0].message.content;
+      } else {
+        logger.error(
+          "[AutoReply]DeepSeek-V3调用失败：\n",
+          JSON.stringify(data, null, 2)
+        );
+        return "[AutoReply]DeepSeek-V3调用失败，详情请查阅控制台。";
+      }
+    } catch (error) {
+      logger.error(
+        `[AutoReply]DeepSeek-V3调用失败, 请求返回结果:\n${JSON.stringify(
+          response
+        )}\n`,
+        error
+      );
+      return "[AutoReply]DeepSeek-V3调用失败，详情请查阅控制台。";
+    }
+  }
+
+  async deepseek_reasoner(
+    request,
+    input,
+    historyMessages,
+    image_list = {},
+    image_type = false
+  ) {
+    // 添加消息内容
+    request.options.body.messages.push({
+      role: "system",
+      content:
+        getConfig().ChatPrompt ||
+        "You are a helpful assistant, you prefer to speak Chinese. Now you are in a chat group, and the following is chat history",
+    });
     // 添加历史对话
     var content = "";
     if (historyMessages && historyMessages.length > 0) {
@@ -227,48 +370,48 @@ export class DeepSeek_R1 {
       });
     }
     content += '"role": "user"  "content":' + input + '"\n';
-    requestBody.messages.push({
+    request.options.body.messages.push({
       role: "user",
       content: content,
     });
 
     logger.mark(
       `\n[AutoReply]DeepSeek-R1 API调用，请求内容：${JSON.stringify(
-        requestBody,
+        request,
         null,
         2
       )}`
     );
     var response;
     try {
-      response = await fetch(`${apiBaseUrl}/chat/completions`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
+      request.options.body = JSON.stringify(request.options.body);
+      response = await fetch(request.url, request.options);
 
       const data = await response.json();
 
       if (data?.choices?.[0]?.message?.content) {
-        return data.choices[0].message.content;
+        // 测试成功频率
+        return data.choices[0].message.content + "\n ";
       } else {
         logger.error(
-          "[AutoReply]DeepSeek_R1调用错误：\n",
+          "[AutoReply]DeepSeek-R1调用失败：\n",
           JSON.stringify(data, null, 2)
         );
-        return "[AutoReply]DeepSeek_R1调用错误，详情请查阅控制台。";
+        return "[AutoReply]DeepSeek-R1调用失败，详情请查阅控制台。";
       }
     } catch (error) {
       logger.error(
-        `[AutoReply]DeepSeek_R1调用失败, 请求返回结果:\n${JSON.stringify(
+        `[AutoReply]DeepSeek-R1调用失败, 请求返回结果:\n${JSON.stringify(
           response
         )}\n`,
         error
       );
-      return "[AutoReply]DeepSeek_R1调用失败，详情请查阅控制台。";
+      return "[AutoReply]DeepSeek-R1调用失败，详情请查阅控制台。";
     }
   }
 }
+
+export const chatMap = {
+  default: DefaultChatRequest,
+  deepseek: DeepSeek,
+};
