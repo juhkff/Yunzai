@@ -108,7 +108,7 @@ export class EmojiSave extends plugin {
         // 有表情包的情况下才继续
         if (list.length > 0 && Math.random() < Number(emojiRate)) {
           let randomIndex = Math.floor(Math.random() * list.length);
-          emojiUrl = `${emojiSaveDir}/${list[randomIndex]}`;
+          var emojiUrl = `${emojiSaveDir}/${list[randomIndex]}`;
           logger.info(`[EmojiSave]发送表情: ${emojiUrl}`);
           e.reply([segment.image(emojiUrl)]);
         }
