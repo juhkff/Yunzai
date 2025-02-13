@@ -174,8 +174,9 @@ export class DefaultChatRequest {
         2
       )}`
     );
+    var response;
     try {
-      const response = await fetch(`${apiBaseUrl}/chat/completions`, {
+      response = await fetch(`${apiBaseUrl}/chat/completions`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
@@ -189,14 +190,14 @@ export class DefaultChatRequest {
       if (data?.choices?.[0]?.message?.content) {
         return data.choices[0].message.content;
       } else {
-        logger.error(
-          "[AutoReply]API调用错误：\n",
-          JSON.stringify(data, null, 2)
-        );
-        return "[AutoReply]API调用错误，详情请查阅控制台。";
+        logger.error("[AutoReply]API调用失败：", JSON.stringify(data, null, 2));
+        return "[AutoReply]API调用失败，详情请查阅控制台。";
       }
     } catch (error) {
-      logger.error("[AutoReply]API调用失败\n", error);
+      logger.error(
+        `[AutoReply]API调用失败, 请求返回结果：${JSON.stringify(response)}\n`,
+        error
+      );
       return "[AutoReply]API调用失败，详情请查阅控制台。";
     }
   }
@@ -328,14 +329,14 @@ export class DeepSeek {
         return data.choices[0].message.content;
       } else {
         logger.error(
-          "[AutoReply]DeepSeek-V3调用失败：\n",
+          "[AutoReply]DeepSeek-V3调用失败：",
           JSON.stringify(data, null, 2)
         );
         return "[AutoReply]DeepSeek-V3调用失败，详情请查阅控制台。";
       }
     } catch (error) {
       logger.error(
-        `[AutoReply]DeepSeek-V3调用失败, 请求返回结果:\n${JSON.stringify(
+        `[AutoReply]DeepSeek-V3调用失败, 请求返回结果：${JSON.stringify(
           response
         )}\n`,
         error
@@ -394,14 +395,14 @@ export class DeepSeek {
         return data.choices[0].message.content + "\n ";
       } else {
         logger.error(
-          "[AutoReply]DeepSeek-R1调用失败：\n",
+          "[AutoReply]DeepSeek-R1调用失败：",
           JSON.stringify(data, null, 2)
         );
         return "[AutoReply]DeepSeek-R1调用失败，详情请查阅控制台。";
       }
     } catch (error) {
       logger.error(
-        `[AutoReply]DeepSeek-R1调用失败, 请求返回结果:\n${JSON.stringify(
+        `[AutoReply]DeepSeek-R1调用失败, 请求返回结果：${JSON.stringify(
           response
         )}\n`,
         error
