@@ -239,9 +239,9 @@ export class DeepSeek_R1 {
         2
       )}`
     );
-
+    var response;
     try {
-      const response = await fetch(`${apiBaseUrl}/chat/completions`, {
+      response = await fetch(`${apiBaseUrl}/chat/completions`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
@@ -262,7 +262,12 @@ export class DeepSeek_R1 {
         return "[AutoReply]DeepSeek_R1调用错误，详情请查阅控制台。";
       }
     } catch (error) {
-      logger.error("[AutoReply]DeepSeek_R1调用失败\n", error);
+      logger.error(
+        `[AutoReply]DeepSeek_R1调用失败, 请求返回结果:\n${JSON.stringify(
+          response
+        )}\n`,
+        error
+      );
       return "[AutoReply]DeepSeek_R1调用失败，详情请查阅控制台。";
     }
   }
