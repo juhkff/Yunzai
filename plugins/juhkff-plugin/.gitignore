@@ -7,8 +7,6 @@ pnpm-lock.yaml
 /.vscode
 /.git
 /.DS_Store
-/.gitignore
 /.gitattributes
-/.gitignore
 /.gitmodules
 /.gitkeep
