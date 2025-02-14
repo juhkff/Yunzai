@@ -29,6 +29,14 @@ docker run -d -p 2536:2536 -p 2877:2877 --name qq-bot -e GITEE_TOKEN=GITEE密钥
 rm /var/lib/docker/containers/<containerId>/<containerId>-json.log
 ```
 
+# 合并和更新第三方远程仓库（开发用）
+
+以 TRSS-Yunzai 为例，添加 TRSS-Yunzai 远程仓库并命名为 yunzai 后执行以下命令（TRSS-Yunzai 中的 main 分支为最新版）
+
+```console
+git merge --squash yunzai/main --allow-unrelated-histories
+```
+
 # ociq 文档（开发用）
 
 [https://oicqjs.github.io/oicq/](https://oicqjs.github.io/oicq/)
