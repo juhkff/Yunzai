@@ -28,4 +28,4 @@ password:
     password: "***REMOVED***"
     nickname: 管理员
     avatarUrl: https://q.qlogo.cn/g?b=qq&s=0&nk=3889000138
-    enable: false
+    enable: true
