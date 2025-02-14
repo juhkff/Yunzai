@@ -1,3 +1,13 @@
 /config/*.yaml
 !/config/default/*.yaml
 /data
+node_modules
+/.idea
+/.vscode
+/.git
+/.DS_Store
+/.gitignore
+/.gitattributes
+/.gitignore
+/.gitmodules
+/.gitkeep
