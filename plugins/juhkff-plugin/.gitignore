@@ -2,6 +2,7 @@
 !/config/default/*.yaml
 /data
 node_modules
+pnpm-lock.yaml
 /.idea
 /.vscode
 /.git
