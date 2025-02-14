@@ -1,0 +1,31 @@
+# 端口
+port: 2877
+
+# 域名
+# 若为auto，则自动获取当前服务器的ip
+# 若为域名，则使用该域名(不会拼接端口号) + 自动获取
+host: auto
+
+# 自定义域名时是否拼接 /YePanel/#/login
+splicePath: true
+
+# # yp登录 存在本地web时是否显示公共面板地址
+# showPublic: true
+
+# api请求日志输出 可选request上的参数 或 false 关闭日志输出
+logs:
+  - method
+  - url
+  - body
+
+# 密码
+# default对应的账号为Bot.uin, 此时会使用对应Bot的头像和名称
+# 也可以自定义账号 key是对应的账号，password是密码，nickname是昵称，avatarUrl是头像链接，enable是是否启用该账号
+password:
+  default:
+    password: "***REMOVED***"
+  admin:
+    password: "***REMOVED***"
+    nickname: 管理员
+    avatarUrl: https://q.qlogo.cn/g?b=qq&s=0&nk=3889000138
+    enable: false
