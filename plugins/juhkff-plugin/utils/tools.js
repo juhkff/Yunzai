@@ -151,13 +151,40 @@ export async function parseSourceImg(e) {
     if (text.length > 0) {
       // 如果有发送者昵称,添加到引用文本前,使用markdown引用格式
       const lines = text.join("\n").split("\n");
-      const quotedLines = lines.map((line) => `> ${line}`).join("\n");
+      const quotedLines = lines.map((line) => `${line}`).join("\n");
       e.sourceMsg = senderNickname
         ? `${senderNickname}：${quotedLines}`
         : quotedLines;
     }
   }
   return e;
+}
+
+
+/**
+ * @description: 处理消息中的分享链接，提取分享内容
+ * @param {*} e 
+ */
+export async function parseJson(e) {
+  if (!e.message) return;
+  e.share = [];
+  for (let i = 0; i < e.message.length; i++) {
+    if (e.message[i].type === "json") {
+      try {
+        let data = JSON.parse(e.message[i].data);
+        if (data.meta?.detail_1?.title === '哔哩哔哩') {
+          e.share.push(data.prompt);
+        } else if (data.meta?.news?.tag === '小黑盒') {
+          e.share.push(`标题：${data.meta?.news?.title}，内容：${data.meta?.news?.desc}`);
+        }
+      } catch (error) {
+        logger.error(`[parseJson] JSON解析错误: ${error.message}`);
+      }
+    }
+  }
+  if (e.message.length == 1 && e.share.length == 1) {
+    e.msg = e.share.map(item => `分享 <${item}>`).join('\n');
+  }
 }
 
 /**
@@ -419,8 +446,7 @@ export async function templateToPic(templatePath, data, viewport) {
     sixContainer.innerHTML = `      ${data.data_six
       .map(
         (s) =>
-          `<li class="${
-            data.full_show ? "full-show-text" : "normal-text"
+          `<li class="${data.full_show ? "full-show-text" : "normal-text"
           }">${s}</li>`
       )
       .join("")}    `;
@@ -430,8 +456,7 @@ export async function templateToPic(templatePath, data, viewport) {
     itContainer.innerHTML = `      ${data.data_it
       .map(
         (s) =>
-          `<li class="${
-            data.full_show ? "full-show-text" : "normal-text"
+          `<li class="${data.full_show ? "full-show-text" : "normal-text"
           }">${s}</li>`
       )
       .join("")}    `;
