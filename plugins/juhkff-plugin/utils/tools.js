@@ -160,10 +160,9 @@ export async function parseSourceImg(e) {
   return e;
 }
 
-
 /**
  * @description: 处理消息中的分享链接，提取分享内容
- * @param {*} e 
+ * @param {*} e
  */
 export async function parseJson(e) {
   if (!e.message) return;
@@ -172,10 +171,12 @@ export async function parseJson(e) {
     if (e.message[i].type === "json") {
       try {
         let data = JSON.parse(e.message[i].data);
-        if (data.meta?.detail_1?.title === '哔哩哔哩') {
+        if (data.meta?.detail_1?.title === "哔哩哔哩") {
           e.share.push(data.prompt);
-        } else if (data.meta?.news?.tag === '小黑盒') {
-          e.share.push(`标题：${data.meta?.news?.title}，内容：${data.meta?.news?.desc}`);
+        } else if (data.meta?.news?.tag === "小黑盒") {
+          e.share.push(
+            `标题：${data.meta?.news?.title}，内容：${data.meta?.news?.desc}`
+          );
         }
       } catch (error) {
         logger.error(`[parseJson] JSON解析错误: ${error.message}`);
@@ -183,7 +184,7 @@ export async function parseJson(e) {
     }
   }
   if (e.message.length == 1 && e.share.length == 1) {
-    e.msg = e.share.map(item => `分享 <${item}>`).join('\n');
+    e.msg = e.share.map((item) => `分享 <${item}>`).join("\n");
   }
 }
 
@@ -446,7 +447,8 @@ export async function templateToPic(templatePath, data, viewport) {
     sixContainer.innerHTML = `      ${data.data_six
       .map(
         (s) =>
-          `<li class="${data.full_show ? "full-show-text" : "normal-text"
+          `<li class="${
+            data.full_show ? "full-show-text" : "normal-text"
           }">${s}</li>`
       )
       .join("")}    `;
@@ -456,7 +458,8 @@ export async function templateToPic(templatePath, data, viewport) {
     itContainer.innerHTML = `      ${data.data_it
       .map(
         (s) =>
-          `<li class="${data.full_show ? "full-show-text" : "normal-text"
+          `<li class="${
+            data.full_show ? "full-show-text" : "normal-text"
           }">${s}</li>`
       )
       .join("")}    `;
