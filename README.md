@@ -18,9 +18,7 @@ pnpm i
 ```console
 docker pull juhkff/qq-bot:latest
 
-<!-- 私人仓库，不提供密钥 -->
-
-docker run -d -p 2536:2536 -p 2877:2877 --name qq-bot -e GITEE_TOKEN=GITEE密钥 juhkff/qq-bot:latest
+docker run -d -p 2536:2536 -p 2877:2877 --name qq-bot juhkff/qq-bot:latest
 ```
 
 # docker 清理容器日志

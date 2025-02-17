@@ -46,7 +46,7 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | b
 RUN echo '#!/bin/sh' > /root/start.sh && \
     echo '. ~/.bashrc' >> /root/start.sh && \
     echo 'if [ ! -d "/root/Yunzai" ]; then' >> /root/start.sh && \
-    echo '  git clone https://juhkff:$GITEE_TOKEN@gitee.com/juhkff/Yunzai.git /root/Yunzai' >> /root/start.sh && \
+    echo '  git clone https://gitee.com/juhkff/Yunzai.git /root/Yunzai' >> /root/start.sh && \
     echo '  cd /root/Yunzai' >> /root/start.sh && \
     echo 'else' >> /root/start.sh && \
     echo '  cd /root/Yunzai && git restore . && git pull' >> /root/start.sh && \
