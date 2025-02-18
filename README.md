@@ -24,6 +24,7 @@ docker run -d -p 2536:2536 -p 2877:2877 --name qq-bot juhkff/qq-bot:latest
 # docker 清理容器日志
 
 ```console
+<!-- 在sudo身份下，或在命令前添加sudo -->
 rm /var/lib/docker/containers/<containerId>/<containerId>-json.log
 ```
 
