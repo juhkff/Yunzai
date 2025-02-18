@@ -35,6 +35,20 @@ rm /var/lib/docker/containers/<containerId>/<containerId>-json.log
 git merge --squash yunzai/main --allow-unrelated-histories
 ```
 
+# 更新插件
+
+```console
+cd plugins/xxx-plugin
+git init
+git add .
+git remote add origin https://github.com/xxx/xxx-plugin.git
+<!-- 如果主分支是 main -->
+git checkout -b main origin/main
+<!-- 或 -->
+git checkout main
+git pull
+```
+
 # ociq 文档（开发用）
 
 [https://oicqjs.github.io/oicq/](https://oicqjs.github.io/oicq/)
