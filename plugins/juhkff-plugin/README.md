@@ -1,26 +1,24 @@
 <div align="center">
 
-<img src="./resources/images/icon.jpg" width = 200px height = 200px />
+# JUHKFF-PLUGIN
 
-<img src="https://img.shields.io/badge/Gihub-综合插件-skyblue?style=flat-square&logo=github">
+<img src="./resources/images/icon.jpg" width = 200px height = 200px/>
+<br>
+<img src="https://img.shields.io/badge/Gihub-综合插件-skyblue?style=flat-square&logo=github"/>
 <img src ="https://img.shields.io/github/license/juhkff/juhkff-plugin"/>
 <img src ="https://img.shields.io/github/languages/top/juhkff/juhkff-plugin?logo=github"/>
 
-<img src ="https://img.shields.io/badge/v3-null?label=TRSS-Yunzai
-"/>
-<img src="https://img.shields.io/badge/v11-null?label=OneBot
-">
+<img src ="https://img.shields.io/badge/v3-null?label=TRSS-Yunzai"/>
+<img src="https://img.shields.io/badge/v11-null?label=OneBot">
 
 </div>
 
-# JUHKFF-PLUGIN
-
 <img decoding="async" align=right width="35%">
 
-一个适用于 [TRSS-Yunzai 框架](https://github.com/TimeRainStarSky/Yunzai) 的 **自用** 综合群机器人插件：
+一个适用于 [TRSS-Yunzai 框架](https://github.com/TimeRainStarSky/Yunzai) 和 [OneBot-v11 标准](https://onebot.dev) 的 **自用** 综合群机器人插件：
 
 > [!WARNING]
-> 由于为自用插件，所以其它协议适配性未知，喵崽框架适配性未知
+> 由于为自用插件，所以其它协议适配性未知，喵崽框架适配性未知（没运行过）
 
 ## 安装插件
 
