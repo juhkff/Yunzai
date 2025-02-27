@@ -105,7 +105,7 @@ export function supportGuoba() {
         },
         {
           field: "autoReply.defaultChatRate",
-          label: "默认触发主动回复概率",
+          label: "默认主动回复率",
           bottomHelpMessage: "概率小数[0,1]，越高越容易触发主动回复",
           component: "InputNumber",
           componentProps: {
@@ -117,7 +117,7 @@ export function supportGuoba() {
         },
         {
           field: "autoReply.groupChatRate",
-          label: "特定群主动回复概率",
+          label: "特定群主动回复率",
           bottomHelpMessage: "该项优先于默认概率",
           component: "GSubForm",
           componentProps: {
