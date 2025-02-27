@@ -76,7 +76,7 @@ export class AutoReply extends plugin {
     var answer = undefined;
     var answer_time = undefined;
     // 如果@了bot，就直接回复
-    if (e.atBot || Math.random() < Number(this.Config.defaultChatRate)) {
+    if (e.atBot || Math.random() < Number(chatRate)) {
       answer = await this.generate_answer(e, msg);
       if (!e.atBot && (!answer || answer.startsWith("[AutoReply]"))) {
         // 如果自主发言失败不提示
