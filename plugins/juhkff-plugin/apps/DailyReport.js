@@ -168,7 +168,7 @@ export class DailyReport extends plugin {
     */
     if (e) {
       e.reply([segment.image(imageBuffer)]);
-      return false;
+      return true;
     } else {
       for (let i = 0; i < this.Config.pushGroupList.length; i++) {
         // 添加延迟以防止消息发送过快
@@ -179,6 +179,7 @@ export class DailyReport extends plugin {
         }, i * 1000);
       }
     }
+    return true;
   }
 
   getCurrentWeekDay() {
