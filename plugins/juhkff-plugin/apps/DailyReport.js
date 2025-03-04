@@ -11,7 +11,7 @@ export class DailyReport extends plugin {
       name: "[扎克芙芙]推送日报",
       dsc: "推送日报",
       event: "message",
-      priority: 9999,
+      priority: 1,
       rule: [
         {
           reg: "^#日报$",
@@ -54,6 +54,10 @@ export class DailyReport extends plugin {
   }
 
   async dailyReport(e) {
+    if (e && e.message_type != "group") {
+      await e.reply("功能只对群聊开放");
+      return true;
+    }
     if (!e) {
       logger.info("推送日报");
     }
