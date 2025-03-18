@@ -1,9 +1,7 @@
 Bot.adapter.push(new class GSUIDCoreAdapter {
-  constructor() {
-    this.id = "GSUIDCore"
-    this.name = "早柚核心"
-    this.path = this.id
-  }
+  id = "GSUIDCore"
+  name = "早柚核心"
+  path = this.id
 
   makeLog(msg) {
     return Bot.String(msg).replace(/base64:\/\/.*?"/g, "base64://...\"")

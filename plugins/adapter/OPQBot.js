@@ -1,16 +1,14 @@
 Bot.adapter.push(new class OPQBotAdapter {
-  constructor() {
-    this.id = "QQ"
-    this.name = "OPQBot"
-    this.path = this.name
-    this.echo = {}
-    this.timeout = 60000
-    this.CommandId = {
-      FriendImage: 1,
-      GroupImage: 2,
-      FriendVoice: 26,
-      GroupVoice: 29,
-    }
+  id = "QQ"
+  name = "OPQBot"
+  path = this.name
+  echo = {}
+  timeout = 60000
+  CommandId = {
+    FriendImage: 1,
+    GroupImage: 2,
+    FriendVoice: 26,
+    GroupVoice: 29,
   }
 
   sendApi(id, CgiCmd, CgiRequest) {

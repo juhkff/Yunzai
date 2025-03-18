@@ -2,13 +2,11 @@ import path from "node:path"
 import { ulid } from "ulid"
 
 Bot.adapter.push(new class OneBotv11Adapter {
-  constructor() {
-    this.id = "QQ"
-    this.name = "OneBotv11"
-    this.path = this.name
-    this.echo = {}
-    this.timeout = 60000
-  }
+  id = "QQ"
+  name = "OneBotv11"
+  path = this.name
+  echo = {}
+  timeout = 60000
 
   makeLog(msg) {
     return Bot.String(msg).replace(/base64:\/\/.*?(,|]|")/g, "base64://...$1")

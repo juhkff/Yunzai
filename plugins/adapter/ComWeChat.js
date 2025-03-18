@@ -2,13 +2,11 @@ import path from "node:path"
 import { ulid } from "ulid"
 
 Bot.adapter.push(new class ComWeChatAdapter {
-  constructor() {
-    this.id = "WeChat"
-    this.name = "ComWeChat"
-    this.path = this.name
-    this.echo = {}
-    this.timeout = 60000
-  }
+  id = "WeChat"
+  name = "ComWeChat"
+  path = this.name
+  echo = {}
+  timeout = 60000
 
   makeLog(msg) {
     return Bot.String(msg).replace(/(base64:\/\/|"type":"data","data":").*?"/g, '$1..."')
