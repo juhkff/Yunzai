@@ -5,7 +5,7 @@ import { templateToPic } from "#juhkff.page";
 import { getFestivalsDates, formatDate } from "#juhkff.date";
 import { pluginResources } from "#juhkff.path";
 
-export class DailyReport extends plugin {
+export class dailyReport extends plugin {
   constructor() {
     super({
       name: "[扎克芙芙]推送日报",
@@ -19,7 +19,7 @@ export class DailyReport extends plugin {
         },
       ],
     });
-    if (this.Config.push) {
+    if (this.Config.useDailyReport && this.Config.push) {
       this.task = Object.defineProperties(
         {},
         {
@@ -54,6 +54,7 @@ export class DailyReport extends plugin {
   }
 
   async dailyReport(e) {
+    if(!this.Config.useDailyReport) return false;
     if (e && e.message_type != "group") {
       await e.reply("功能只对群聊开放");
       return true;

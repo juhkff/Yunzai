@@ -28,8 +28,8 @@ export class Siliconflow {
 
   async [VisualInterface.generateRequest](apiKey, model, image, input) {
     if (!this.modelMap[model]) {
-      logger.error("[AutoReply]不支持的模型：" + model);
-      return "[AutoReply]不支持的模型：" + model;
+      logger.error("[autoReply]不支持的模型：" + model);
+      return "[autoReply]不支持的模型：" + model;
     }
     var request = {
       url: `${this.ApiBaseUrl}/chat/completions`,
@@ -52,7 +52,6 @@ export class Siliconflow {
       image,
       input
     );
-    // 如果 DeepSeek-R1 失败，尝试使用 DeepSeek-V3
     return response;
   }
 
@@ -74,7 +73,7 @@ export class Siliconflow {
       ],
     });
 
-    logger.mark(`[AutoReply]Qwen/Qwen2-VL-72B-Instruct API调用`);
+    logger.mark(`[autoReply]Qwen/Qwen2-VL-72B-Instruct API调用`);
     var response;
     try {
       request.options.body = JSON.stringify(request.options.body);
@@ -86,27 +85,23 @@ export class Siliconflow {
         return data.choices[0].message.content;
       } else {
         logger.error(
-          "[AutoReply]Qwen/Qwen2-VL-72B-Instruct调用失败：",
+          "[autoReply]Qwen/Qwen2-VL-72B-Instruct调用失败：",
           JSON.stringify(data, null, 2)
         );
-        return "[AutoReply]Qwen/Qwen2-VL-72B-Instruct调用失败，详情请查阅控制台。";
+        return "[autoReply]Qwen/Qwen2-VL-72B-Instruct调用失败，详情请查阅控制台。";
       }
     } catch (error) {
       logger.error(
-        `[AutoReply]Qwen/Qwen2-VL-72B-Instruct调用失败, 请求返回结果：${JSON.stringify(
+        `[autoReply]Qwen/Qwen2-VL-72B-Instruct调用失败, 请求返回结果：${JSON.stringify(
           response
         )}\n`,
         error
       );
-      return "[AutoReply]Qwen/Qwen2-VL-72B-Instruct调用失败，详情请查阅控制台。";
+      return "[autoReply]Qwen/Qwen2-VL-72B-Instruct调用失败，详情请查阅控制台。";
     }
   }
 }
 
 export const visualMap = {
   siliconflow: Siliconflow,
-};
-
-export const apiList = {
-  siliconflow: "https://api.siliconflow.cn/v1",
 };
