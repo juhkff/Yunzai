@@ -7,12 +7,14 @@ import {
 } from "#juhkff.handle";
 import { formatDateDetail } from "#juhkff.date";
 import { ChatInterface, chatMap } from "#juhkff.api.chat";
+import Objects from "#juhkff.kits";
+import { EMOTION_KEY } from "#juhkff.redis";
 
 /**
  * 主动群聊插件
  * @author Bilibili - 扎克芙芙
  */
-export class AutoReply extends plugin {
+export class autoReply extends plugin {
   // 构建正则匹配等
   constructor() {
     super({
@@ -28,6 +30,17 @@ export class AutoReply extends plugin {
         },
       ],
     });
+    if (this.Config.useEmotion) {
+      this.task = Object.defineProperties(
+        {},
+        {
+          cron: { value: this.Config.emotionGenerateTime, writable: false },
+          name: { value: "情感生成", writable: false },
+          fnc: { value: () => this.emotionGenerate(), writable: false },
+          log: { get: () => false },
+        }
+      );
+    }
   }
 
   get Config() {
@@ -35,6 +48,7 @@ export class AutoReply extends plugin {
   }
 
   async autoReply(e) {
+    if(!this.Config.useAutoReply) return false;
     if (e.message_type != "group") return false;
     // 避免重复保存上下文
     // 借助siliconflow-plugin保存群聊上下文
@@ -51,7 +65,7 @@ export class AutoReply extends plugin {
     }
     // 通过自定义的e.j_msg拼接完整消息内容
     var msg = e.j_msg.map((msg) => msg.text).join(" ");
-    logger.info(`[AutoReply]解析后的消息内容: ${msg}`);
+    logger.info(`[autoReply]解析后的消息内容: ${msg}`);
 
     if (msg) msg = msg.trim();
     if (!msg || msg == "") {
@@ -79,7 +93,7 @@ export class AutoReply extends plugin {
     // 如果@了bot，就直接回复
     if (e.atBot || Math.random() < Number(chatRate)) {
       answer = await this.generate_answer(e, msg);
-      if (!e.atBot && (!answer || answer.startsWith("[AutoReply]"))) {
+      if (!e.atBot && (!answer || answer.startsWith("[autoReply]"))) {
         // 如果自主发言失败不提示
       } else {
         await e.reply(answer);
@@ -91,7 +105,7 @@ export class AutoReply extends plugin {
       var content = chatDate + " - " + e.sender.card + "：" + msg;
       await this.saveContext(time, e.group_id, e.message_id, "user", content);
       // 保存AI回复
-      if (answer && !answer.startsWith("[AutoReply]")) {
+      if (answer && !answer.startsWith("[autoReply]")) {
         await this.saveContext(answer_time, e.group_id, 0, "assistant", answer);
       }
     }
@@ -111,19 +125,29 @@ export class AutoReply extends plugin {
     let apiKey = this.Config.chatApiKey;
     let model = this.Config.chatModel;
     if (!apiKey || apiKey == "") {
-      logger.error("[AutoReply]请先在autoReply.yaml中设置chatApiKey");
-      return "[AutoReply]请先在autoReply.yaml中设置chatApiKey";
+      logger.error("[autoReply]请先在autoReply.yaml中设置chatApiKey");
+      return "[autoReply]请先在autoReply.yaml中设置chatApiKey";
     }
     if (!model || model == "") {
-      logger.error("[AutoReply]请先在autoReply.yaml中设置chatModel");
-      return "[AutoReply]请先在autoReply.yaml中设置chatModel";
+      logger.error("[autoReply]请先在autoReply.yaml中设置chatModel");
+      return "[autoReply]请先在autoReply.yaml中设置chatModel";
     }
 
     // 获取历史对话
     let historyMessages = [];
     if (this.Config.useContext) {
       historyMessages = await this.loadContext(e.group_id);
-      logger.info(`[AutoReply]加载历史对话: ${historyMessages.length} 条`);
+      logger.info(`[autoReply]加载历史对话: ${historyMessages.length} 条`);
+    }
+
+    // 如果启用了情感，并且redis中不存在情感，则进行情感生成
+    if (
+      this.Config.useEmotion &&
+      Objects.isNull(await redis.get(EMOTION_KEY))
+    ) {
+      redis.set(EMOTION_KEY, await this.emotionGenerate(), {
+        EX: 24 * 60 * 60,
+      });
     }
 
     let answer = await this.sendChatRequest(
@@ -152,16 +176,18 @@ export class AutoReply extends plugin {
     chatApi,
     apiKey,
     model = "",
-    historyMessages = []
+    historyMessages = [],
+    useSystemRole = true
   ) {
     var chatInstance = chatMap[chatApi];
-    if (!chatInstance) return "[AutoReply]请在AutoReply.yaml中设置有效的AI接口";
-    var result = await chatInstance[ChatInterface.generateRequest](
+    if (!chatInstance) return "[autoReply]请在autoReply.yaml中设置有效的AI接口";
+    var result = await chatInstance[ChatInterface.generateRequest]({
       apiKey,
       model,
       input,
-      historyMessages
-    );
+      historyMessages,
+      useSystemRole,
+    });
     return result;
   }
 
@@ -197,7 +223,7 @@ export class AutoReply extends plugin {
 
       return true;
     } catch (error) {
-      logger.error("[AutoReply]保存上下文失败:", error);
+      logger.error("[autoReply]保存上下文失败:", error);
       return false;
     }
   }
@@ -228,8 +254,33 @@ export class AutoReply extends plugin {
 
       return messages;
     } catch (error) {
-      logger.error("[AutoReply]加载上下文失败:", error);
+      logger.error("[autoReply]加载上下文失败:", error);
       return [];
     }
+  }
+
+  /**
+   * @description: 情感生成
+   * @param {*}
+   * @return {*}
+   * @author: JUHKFF
+   */
+  async emotionGenerate() {
+    var chatApi = this.Config.chatApi;
+    let apiKey = this.Config.chatApiKey;
+    let model = this.Config.chatModel;
+    if (Objects.hasNull(chatApi, apiKey, model)) {
+      return null;
+    }
+    var emotion = await this.sendChatRequest(
+      this.Config.emotionGeneratePrompt,
+      chatApi,
+      apiKey,
+      model,
+      [],
+      false
+    );
+    logger.info(`[autoReply]情感生成: ${emotion}`);
+    return emotion;
   }
 }
