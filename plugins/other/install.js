@@ -17,7 +17,6 @@ const list = {
   "StarRail-plugin"   :"https://gitee.com/hewang1an/StarRail-plugin",
   "xiaoyao-cvs-plugin":"https://gitee.com/Ctrlcvs/xiaoyao-cvs-plugin",
   "trss-xianxin-plugin"   :"https://gitee.com/snowtafir/xianxin-plugin",
-  "Lagrange-Plugin"   :"https://gitee.com/TimeRainStarSky/Yunzai-Lagrange-Plugin",
   "Telegram-Plugin"   :"https://gitee.com/TimeRainStarSky/Yunzai-Telegram-Plugin",
   "Discord-Plugin":"https://gitee.com/TimeRainStarSky/Yunzai-Discord-Plugin",
   "WeChat-Plugin" :"https://gitee.com/TimeRainStarSky/Yunzai-WeChat-Plugin",

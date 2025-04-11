@@ -231,7 +231,6 @@ ws://localhost:2536/GSUIDCore
 - [Telegram](../../../Yunzai-Telegram-Plugin)
 - [Discord](../../../Yunzai-Discord-Plugin)
 - [Route](../../../Yunzai-Route-Plugin)
-- [Lagrange](../../../Yunzai-Lagrange-Plugin)
 
 </details>
 
