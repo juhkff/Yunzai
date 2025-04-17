@@ -130,12 +130,8 @@ export class Restart extends plugin {
 
   async restart() {
     await this.set()
-    if (process.env.app_type === "pm2") {
-      const ret = await Bot.exec("pnpm run restart")
-      if (!ret.error) process.exit()
-      await this.reply(`重启错误\n${ret.error}\n${ret.stdout}\n${ret.stderr}`)
-      Bot.makeLog("error", ["重启错误", ret])
-    } else process.exit()
+    const ret = await Bot.restart()
+    await this.reply(`重启错误\n${Bot.String(ret)}}`)
   }
 
   async stop(time) {
@@ -149,10 +145,7 @@ export class Restart extends plugin {
 
   async exit() {
     await this.set(true)
-    if (process.env.app_type === "pm2") {
-      const ret = await Bot.exec("pnpm stop")
-      await this.reply(`停止错误\n${ret.error}\n${ret.stdout}\n${ret.stderr}`)
-      Bot.makeLog("error", ["停止错误", ret])
-    } else process.exit(1)
+    const ret = await Bot.exit()
+    await this.reply(`停止错误\n${Bot.String(ret)}`)
   }
 }

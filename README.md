@@ -39,7 +39,7 @@ Yunzai 应用端，支持多账号，支持协议端：OneBotv11、ComWeChat、G
 <details><summary>手动安装</summary>
 
 > 环境准备：Windows/Linux/MacOS/Android  
-> [Node.js(>=v21)](https://nodejs.org), [Redis](https://redis.io), [Git](https://git-scm.com), [Chrome(可选)](https://google.cn/chrome)
+> [Node.js(>=v23.11)](https://nodejs.org), [Valkey](https://valkey.io), [Git](https://git-scm.com), [Chrome(可选)](https://google.cn/chrome)
 
 1. Git Clone 项目
 
@@ -64,6 +64,7 @@ pnpm i
 | ---- | ---- |
 | 启动 | node . |
 | 停止 | node . stop |
+| 守护 | node . daemon |
 
 4. 使用 [pm2](https://pm2.keymetrics.io) 后台运行
 

@@ -15,7 +15,7 @@ const list = {
   "earth-k-plugin":"https://gitee.com/SmallK111407/earth-k-plugin",
   "useless-plugin":"https://gitee.com/SmallK111407/useless-plugin",
   "StarRail-plugin"   :"https://gitee.com/hewang1an/StarRail-plugin",
-  "xiaoyao-cvs-plugin":"https://gitee.com/Ctrlcvs/xiaoyao-cvs-plugin",
+  "xiaoyao-cvs-plugin":"https://gitcode.com/TimeRainStarSky/xiaoyao-cvs-plugin.git",
   "trss-xianxin-plugin"   :"https://gitee.com/snowtafir/xianxin-plugin",
   "Telegram-Plugin"   :"https://gitee.com/TimeRainStarSky/Yunzai-Telegram-Plugin",
   "Discord-Plugin":"https://gitee.com/TimeRainStarSky/Yunzai-Discord-Plugin",
