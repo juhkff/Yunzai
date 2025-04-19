@@ -1,15 +1,8 @@
 switch (process.env.app_type || process.argv[2]) {
-  case "stop":
-  case "restart": {
+  case "stop": {
     const cfg = (await import("./lib/config/config.js")).default
-    const fetch = (await import("node-fetch")).default
-    try {
-      await fetch(`http://localhost:${cfg.server.port}/exit`, { headers: cfg.server.auth || undefined })
-    } catch {}
-    if (process.argv[2] === "stop")
-      process.exit()
-    global.start_type = "internal"
-    break
+    await fetch(`http://localhost:${cfg.server.port}/exit`, { headers: cfg.server.auth || undefined }).catch(() => {})
+    process.exit()
   } case "daemon": {
     console.log("守护进程正在启动主进程")
     const { spawnSync } = await import("node:child_process")
