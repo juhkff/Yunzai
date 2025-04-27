@@ -1,0 +1,18 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "clean build",
+      "type": "shell",
+      "command": "if [ -d \"./javascript\" ]; then rm -r ./javascript; fi",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "options": {
+        "cwd": "${workspaceFolder}/plugins/juhkff-plugin"
+      }
+    }
+  ]
+}
