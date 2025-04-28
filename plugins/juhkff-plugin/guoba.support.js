@@ -1,13 +1,8 @@
 import path from "path";
 import lodash from "lodash";
-import { pluginResources } from "#juhkff.path";
-import setting from "#juhkff.setting";
-import { ChatInterface } from "#juhkff.api.chat";
-import { chatMap } from "#juhkff.map";
-import { Objects } from "#juhkff.kits";
-import { VisualInterface, visualMap } from "#juhkff.api.visual";
-import { removeSubKeys, EMOTION_KEY } from "#juhkff.redis";
-
+import { Objects } from "./javascript/utils/kits.js";
+import { PLUGIN_RESOURCES_DIR } from "./javascript/model/path.js";
+import { agentMap } from "./javascript/model/map.js";
 // 支持锅巴
 export function supportGuoba() {
     return {
@@ -38,7 +33,7 @@ export function supportGuoba() {
             // 图标颜色，例：#FF0000 或 rgb(255, 0, 0)
             iconColor: "#288ac3",
             // 如果想要显示成图片，也可以填写图标路径（绝对路径）
-            iconPath: path.join(pluginResources, "images/icon.jpg"),
+            iconPath: path.join(PLUGIN_RESOURCES_DIR, "images/icon.jpg"),
         },
         // 配置项信息
         configInfo: {
@@ -275,7 +270,7 @@ export function supportGuoba() {
                 {
                     field: "dailyReport.alapiToken",
                     label: "alapi_token",
-                    bottomHelpMessage: "如果发现无法生成图片时需填写该接口。填写内容：在https://admin.alapi.cn/user/login登录后，进入“我的API”获取token",
+                    bottomHelpMessage: "该项置空即可",
                     component: "Input",
                 },
                 {
@@ -1284,7 +1279,7 @@ function getVisualModels() {
  * @returns 群聊AI接口列表
  */
 function listAllChatApi() {
-    var chatKeys = Object.keys(chatMap);
+    var chatKeys = Object.keys(agentMap);
     var result = [];
     for (const key of chatKeys) {
         result.push({ label: key, value: key });
