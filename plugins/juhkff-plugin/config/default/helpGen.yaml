@@ -29,8 +29,7 @@ colorOptions:
   # 帮助描述颜色
   helpDescColor: rgba(255, 255, 255, 1)
 # 其它命令
-manualList:
-  []
+manualList: [
   # 你可以在这里添加其它命令
   # 例如：
   # - title:
@@ -38,3 +37,4 @@ manualList:
   #   command:
   #   description:
   #   belongTo:
+]
