@@ -14,13 +14,36 @@ export type Request = {
     options: RequestOptions;
 };
 
+export type Role = "user" | "assistant" | "system";
+
+export type SimpleJMsg = {
+    id?: number,
+    text?: string,
+    data?: string,
+    type: string,
+} & Record<string, any>;
+
+export type HistorySimpleJMsg = {
+    message_id?: number | string,
+    role: Role,
+    content: string
+};
+
 export type ComplexJMsg = {
-    sourceImg: string[],
-    sourceText: string,
-    img: string[],
-    text: string,
-    notProcessed: any[],
+    sourceImg?: string[],
+    sourceText?: string,
+    img?: string[],
+    text?: string,
+    notProcessed?: (SimpleJMsg & { url?: string })[],
 }
+
+export type HistoryComplexJMsg = {
+    message_id: number | string,
+    role: Role,
+    nickName: string,
+    time: string,
+    content: ComplexJMsg
+};
 
 export type RequestMsg = {
     texts: string,

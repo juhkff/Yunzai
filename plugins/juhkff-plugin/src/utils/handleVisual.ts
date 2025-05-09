@@ -16,7 +16,7 @@ import { EMOTION_KEY, getSourceMessage } from "./redis.js";
  * 视觉模型版handle：由于会生成插件专属消息处理列表j_msg，该方法必须作为消息处理的第一个函数
  * @param {} e
  */
-export async function parseImageVisual(e: { j_msg: ComplexJMsg | null; message: string[]; }) {
+export async function parseImageVisual(e: { j_msg: ComplexJMsg | null; message: ({ type: string } & Record<string, any>)[]; }) {
     if (!e.j_msg)
         e.j_msg = {
             sourceImg: [],
@@ -117,7 +117,7 @@ export async function parseSourceMessageVisual(e: { j_msg: ComplexJMsg | null; g
  * @param {} e
  * @returns
  */
-export async function parseJsonVisual(e: { j_msg: ComplexJMsg | null; }) {
+export async function parseJsonVisual(e: { j_msg: ComplexJMsg }) {
     if (!e.j_msg) return;
     for (let i = 0; i < e.j_msg.notProcessed.length; i++) {
         if (e.j_msg.notProcessed[i].type === "json") {
@@ -252,10 +252,10 @@ function isSkippedUrl(url: string): boolean {
  * @returns 回复内容
  */
 export async function generateAnswerVisual(e: { group_id: number | string; j_msg: ComplexJMsg; sender: { card: string }; }) {
-    let model = config.autoReply.visualModel;
+    let model = config.autoReply.chatModel;
     if (!model || model == "") {
-        logger.error("[handleVisual]请先设置visualModel");
-        return "[handleVisual]请先设置visualModel";
+        logger.error("[handleVisual]请先设置model");
+        return "[handleVisual]请先设置model";
     }
 
     // 获取历史对话
@@ -288,13 +288,13 @@ export async function generateAnswerVisual(e: { group_id: number | string; j_msg
  * @returns 
  */
 async function sendChatRequestVisual(j_msg: ComplexJMsg, nickName: string, model: string = "", historyMessages: any[] = [], useSystemRole: boolean = true): Promise<any> {
-    if (!agent.visual) return "[handleVisual]请设置有效的AI接口";
-    var result = await agent.visual.visualRequest(model, nickName, j_msg, historyMessages, useSystemRole);
+    if (!agent.chat) return "[handleVisual]请设置有效的AI接口";
+    var result = await agent.chat.visualRequest(model, nickName, j_msg, historyMessages, useSystemRole);
     return result;
 }
 
 // 保存对话上下文
-export async function saveContextVisual(time: number | string, date: any, groupId: any, message_id = 0, role: "user" | "assistant", nickName: string, j_msg: any) {
+export async function saveContextVisual(time: number | string, date: any, groupId: any, message_id = 0, role: "user" | "assistant", nickName: string, j_msg: ComplexJMsg) {
     try {
         const maxHistory = config.autoReply.maxHistoryLength;
         const key = `juhkff:auto_reply:${groupId}:${time}`;

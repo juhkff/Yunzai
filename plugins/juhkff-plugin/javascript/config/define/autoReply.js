@@ -4,6 +4,12 @@ import YAML from "yaml";
 import chokidar from "chokidar";
 import { PLUGIN_CONFIG_DIR, PLUGIN_DEFAULT_CONFIG_DIR } from "../../model/path.js";
 import { configFolderCheck, configSync, getFileHash } from "../common.js";
+export var ChatApiType;
+(function (ChatApiType) {
+    ChatApiType["TEXT"] = "text";
+    ChatApiType["VISUAL"] = "visual";
+    ChatApiType["SOUND"] = "sound";
+})(ChatApiType || (ChatApiType = {}));
 export let autoReplyConfig = null;
 export function setAutoReplyConfig(config) {
     autoReplyConfig = config;
