@@ -1,0 +1,19 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "npm run tsc: 构建 - plugins/juhkff-plugin",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "tsc"],
+      "options": {
+        "cwd": "${workspaceFolder}/plugins/juhkff-plugin"
+      },
+      "problemMatcher": ["$tsc"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+}
