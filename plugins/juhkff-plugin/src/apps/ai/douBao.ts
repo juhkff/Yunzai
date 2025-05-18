@@ -777,7 +777,7 @@ export class douBao extends plugin {
         this.createSongGenerateTaskThread(e, id, this.handleSongGenerateCompleted, this.handleSongFailed);
         return true;
     }
-    createSongGenerateTaskThread(e: any, id: string, successHandler?: (e: any, responseJson: any) => void, failHandler?: (e: any, responseJson: any) => void) {
+    createSongGenerateTaskThread(e: any, id: string, successHandler?: (e: any, responseJson: any) => Promise<void>, failHandler?: (e: any, responseJson: any) => Promise<void>) {
         var body = {
             TaskID: id,
         }
@@ -786,18 +786,18 @@ export class douBao extends plugin {
             if (response.Result.Status == 2) {
                 clearInterval(taskThread);
                 // 处理完成
-                if (successHandler) successHandler(e, response);
+                if (successHandler) await successHandler(e, response);
             } else if (response.Result.Status == 3) {
                 clearInterval(taskThread);
                 // 处理失败
-                if (failHandler) failHandler(e, response);
+                if (failHandler) await failHandler(e, response);
             } else if (response.Result.Status != 0 && response.Result.Status != 1) {
                 // 处理取消
                 clearInterval(taskThread);
             }
         }, 5000);
     }
-    handleSongFailed(e: any, response: { error: any; }) {
+    async handleSongFailed(e: any, response: { error: any; }) {
         // 处理失败
         var error = response.error;
         var message = error.message;
@@ -806,17 +806,32 @@ export class douBao extends plugin {
         e.reply(errorMsg);
     }
 
-    handleSongGenerateCompleted(e: any, response: any) {
-        // 视频生成
+    async handleSongGenerateCompleted(e: any, response: any) {
+        /*
         const audioUrl = response.Result.SongDetail.AudioUrl;
-        // 从远程地址获取音频数据
-        fetch(audioUrl).then((res) => {
-            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-            res.arrayBuffer().then((arrayBuffer) => {
-                const base64String = Buffer.from(arrayBuffer).toString('base64');
-                e.reply([segment.file(`base64://${base64String}`)]);
-            });
-        });
+        const res = await fetch(audioUrl);
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        const arrayBuffer = await res.arrayBuffer()
+        const base64String = Buffer.from(arrayBuffer).toString('base64');
+        await e.reply([segment.file(`base64://${base64String}`)]);
         return;
+        */
+        // 视频生成
+        var audioUrl = response.Result.SongDetail.AudioUrl;
+        const res = await fetch(audioUrl);
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        const arrayBuffer = await res.arrayBuffer()
+        var timestamp = new Date().getTime();
+        var filePath = path.join(
+            PLUGIN_DATA_DIR,
+            `${e.group_id}`,
+            "audio",
+            `${timestamp}_${response.Result.TaskID}.${await Base64.getAudioTypeFromBuffer(arrayBuffer)}`
+        );
+        await downloadFile(audioUrl, filePath);
+        await e.reply(segment.video(filePath));
+        fs.unlink(filePath, (err) => {
+            logger.error("[douBao]删除文件出错", err);
+        });
     }
 }

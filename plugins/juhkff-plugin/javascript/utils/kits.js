@@ -1,3 +1,4 @@
+import * as fileType from "file-type";
 /**
  * @description: 对象工具类
  */
@@ -81,5 +82,12 @@ export class Base64 {
         if (Objects.isNull(base64))
             return base64;
         return null;
+    }
+    static async getAudioTypeFromBuffer(arrayBuffer) {
+        const result = await fileType.fileTypeFromBuffer(arrayBuffer);
+        if (result && result.mime.startsWith('audio/')) {
+            return result.ext; // 返回文件扩展名，如 'mp3', 'wav' 等
+        }
+        return 'unknown';
     }
 }
