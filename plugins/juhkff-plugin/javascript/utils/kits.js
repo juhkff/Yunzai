@@ -1,4 +1,5 @@
 import * as fileType from "file-type";
+import NodeID3 from "node-id3";
 /**
  * @description: 对象工具类
  */
@@ -41,7 +42,7 @@ export class StringUtils {
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
 }
-export class Base64 {
+export class FileType {
     static getBase64ImageType(base64) {
         // 将Base64数据解码为二进制数据
         const binaryData = Buffer.from(base64, "base64");
@@ -70,7 +71,7 @@ export class Base64 {
         if (base64.startsWith("data:image/")) {
             return base64.split(";")[0].substring(5);
         }
-        const base64Type = Base64.getBase64ImageType(base64);
+        const base64Type = FileType.getBase64ImageType(base64);
         if (base64Type) {
             return "image/" + base64Type.split("/")[1].split(";")[0];
         }
@@ -84,10 +85,44 @@ export class Base64 {
         return null;
     }
     static async getAudioTypeFromBuffer(arrayBuffer) {
-        const result = await fileType.fileTypeFromBuffer(arrayBuffer);
-        if (result && result.mime.startsWith('audio/')) {
-            return result.ext; // 返回文件扩展名，如 'mp3', 'wav' 等
+        return await fileType.fileTypeFromBuffer(arrayBuffer);
+    }
+}
+export class Audio {
+    static parseCaptions(captionsJson) {
+        const captions = JSON.parse(captionsJson);
+        let lrcLines = [];
+        for (const utterance of captions.utterances) {
+            const words = utterance.words || [];
+            const startMs = Math.floor(words.start_time);
+            const text = words.text;
+            // LRC 行：[mm:ss.xx]text
+            const timeStr = Audio.formatTimeLRC(startMs);
+            const lineText = `${timeStr}${text}`;
+            if (lineText) {
+                // LRC 格式
+                lrcLines.push(lineText);
+            }
         }
-        return 'unknown';
+        return {
+            lrc: lrcLines.join('\n')
+        };
+    }
+    static formatTimeLRC(ms) {
+        const totalSecs = Math.floor(ms / 1000);
+        const mins = Math.floor(totalSecs / 60);
+        const secs = totalSecs % 60;
+        const hundredths = Math.floor((ms % 1000) / 10);
+        return `[${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(hundredths).padStart(2, '0')}]`;
+    }
+    static async writeLyricsToMP3(mp3FilePath, lrcContent) {
+        const tags = NodeID3.read(mp3FilePath);
+        // tags.uslt = {
+        //     language: 'eng',
+        //     descriptor: 'Embedded Lyrics',
+        //     text: lrcContent
+        // };
+        NodeID3.write(tags, mp3FilePath);
+        console.log('✅ 歌词已写入 MP3 文件');
     }
 }

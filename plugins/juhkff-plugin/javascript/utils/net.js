@@ -8,7 +8,7 @@ import path from "path";
 import axios from "axios";
 import { DOMParser } from "xmldom";
 import fastImageSize from "fast-image-size";
-import { Base64 } from "./kits.js";
+import { FileType } from "./kits.js";
 /**
  * 下载文件
  * @param url 文件下载链接
@@ -56,7 +56,7 @@ export async function url2Base64(url, isReturnBuffer = false) {
         const contentLength =
           response.headers?.["content-length"] || response.headers?.get("size");
         const maxSizeInBytes = 10 * 1024 * 1024; // 10MB in bytes
-    
+
         if (contentLength && parseInt(contentLength) > maxSizeInBytes) {
           logger.error("[tools]图片大小超过10MB，请使用大小合适的图片");
           return null;
@@ -67,7 +67,7 @@ export async function url2Base64(url, isReturnBuffer = false) {
             return Buffer.from(response.data, "binary");
         // 根据图片类型来处理
         var base64 = Buffer.from(response.data, "binary").toString("base64");
-        return `${Base64.getBase64ImageType(base64)}${base64}`;
+        return `${FileType.getBase64ImageType(base64)}${base64}`;
     }
     catch (error) {
         throw new Error(`[net]下载图片${url}失败: ${error}`);

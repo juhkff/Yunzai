@@ -3,7 +3,7 @@ import fs from "fs";
 import { getServiceApi } from "../../ai/doubao/api.js";
 import { segment } from "oicq";
 import { PLUGIN_DATA_DIR } from "../../model/path.js";
-import { Base64, Objects } from "../../utils/kits.js";
+import { FileType, Objects } from "../../utils/kits.js";
 import { downloadFile, url2Base64 } from "../../utils/net.js";
 import { config } from "../../config/index.js";
 import { processMessage } from "../../common.js";
@@ -133,7 +133,7 @@ export class douBao extends plugin {
     }
     // ------------------------------------------------ 图片服务通用检查 -------------------------------------------------
     async preCheck(e) {
-        if (Objects.hasNull(config.douBao.imageService.accessKeyId, config.douBao.imageService.secretAccessKey)) {
+        if (Objects.hasNull(config.douBao.imageService.accessKeyId, config.douBao.imageService.secretAccessKey) && Objects.hasNull(config.douBao.songService.accessKeyId, config.douBao.songService.secretAccessKey)) {
             await e.reply("请先设置accessKeyId和secretAccessKey");
             return false;
         }
@@ -164,7 +164,7 @@ export class douBao extends plugin {
             return false;
         if (!config.douBao.useImageStyle)
             return false;
-        if (!this.preCheck(e))
+        if (!await this.preCheck(e))
             return true;
         let result = await processMessage(e);
         var body = {};
@@ -222,7 +222,7 @@ export class douBao extends plugin {
             if (!Objects.isNull(response.data.binary_data_base64)) {
                 response.data.binary_data_base64.forEach((base64) => {
                     if (!base64.startsWith("data:image/"))
-                        segments.push(segment.image(Base64.getBase64ImageType(base64) + base64));
+                        segments.push(segment.image(FileType.getBase64ImageType(base64) + base64));
                     else
                         segments.push(segment.image(base64));
                 });
@@ -242,7 +242,7 @@ export class douBao extends plugin {
             return false;
         if (!config.douBao.useImageImitate)
             return false;
-        if (!this.preCheck(e))
+        if (!await this.preCheck(e))
             return true;
         var result = await processMessage(e);
         var body = {};
@@ -286,7 +286,7 @@ export class douBao extends plugin {
             if (!Objects.isNull(response.data.binary_data_base64)) {
                 response.data.binary_data_base64.forEach((base64) => {
                     if (!base64.startsWith("data:image/"))
-                        segments.push(segment.image(Base64.getBase64ImageType(base64) + base64));
+                        segments.push(segment.image(FileType.getBase64ImageType(base64) + base64));
                     else
                         segments.push(segment.image(base64));
                 });
@@ -345,7 +345,7 @@ export class douBao extends plugin {
             return false;
         if (!config.douBao.useImageGenerate)
             return false;
-        if (!this.preCheck(e))
+        if (!await this.preCheck(e))
             return true;
         var msgList = await processMessage(e);
         // 将指令部分去除
@@ -385,7 +385,7 @@ export class douBao extends plugin {
                     var base64 = obj.b64_json;
                     if (!Objects.isNull(base64)) {
                         if (!base64.startsWith("data:image/"))
-                            segments.push(segment.image(Base64.getBase64ImageType(base64) + base64));
+                            segments.push(segment.image(FileType.getBase64ImageType(base64) + base64));
                         else
                             segments.push(segment.image(base64));
                     }
@@ -608,7 +608,7 @@ export class douBao extends plugin {
     async lyricsGenerate(e: any) {
         if (!config.douBao.useDouBao) return false;
         if (!config.douBao.useLyricsGenerate) return false;
-        if (!this.preCheck(e)) return true;
+        if (!await this.preCheck(e)) return true;
         var result = await processMessage(e);
         var body: RequestBody = {};
         body.ModelVersion = config.douBao.lyricsGenerate.modelVersion;
@@ -692,7 +692,7 @@ export class douBao extends plugin {
             return false;
         if (!config.douBao.useSongGenerate)
             return false;
-        if (!this.preCheck(e))
+        if (!await this.preCheck(e))
             return true;
         var result = await processMessage(e);
         var body = {};
@@ -795,27 +795,15 @@ export class douBao extends plugin {
         e.reply(errorMsg);
     }
     async handleSongGenerateCompleted(e, response) {
-        /*
-        const audioUrl = response.Result.SongDetail.AudioUrl;
-        const res = await fetch(audioUrl);
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        const arrayBuffer = await res.arrayBuffer()
-        const base64String = Buffer.from(arrayBuffer).toString('base64');
-        await e.reply([segment.file(`base64://${base64String}`)]);
-        return;
-        */
-        // 视频生成
         var audioUrl = response.Result.SongDetail.AudioUrl;
         const res = await fetch(audioUrl);
         if (!res.ok)
             throw new Error(`HTTP error! status: ${res.status}`);
         const arrayBuffer = await res.arrayBuffer();
         var timestamp = new Date().getTime();
-        var filePath = path.join(PLUGIN_DATA_DIR, `${e.group_id}`, "audio", `${timestamp}_${response.Result.TaskID}.${await Base64.getAudioTypeFromBuffer(arrayBuffer)}`);
+        var filePath = path.join(PLUGIN_DATA_DIR, `${e.group_id}`, "audio", `${timestamp}_${response.Result.TaskID}.${(await FileType.getAudioTypeFromBuffer(arrayBuffer)).ext}`);
         await downloadFile(audioUrl, filePath);
-        await e.reply(segment.video(filePath));
-        fs.unlink(filePath, (err) => {
-            logger.error("[douBao]删除文件出错", err);
-        });
+        await e.reply(segment.file(filePath, path.basename(filePath)));
+        fs.unlinkSync(filePath);
     }
 }
