@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="ProjectModuleManager">
-    <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Yunzai.iml" filepath="$PROJECT_DIR$/.idea/Yunzai.iml" />
-      <module fileurl="file://$PROJECT_DIR$/plugins/juhkff-plugin/.idea/juhkff-plugin.iml" filepath="$PROJECT_DIR$/plugins/juhkff-plugin/.idea/juhkff-plugin.iml" />
-    </modules>
-  </component>
-</project>
