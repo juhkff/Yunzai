@@ -1,11 +1,7 @@
 import * as fileType from "file-type";
 import ffmpeg from "fluent-ffmpeg";
-import ffmpegPath from "ffmpeg-static";
 import NodeID3 from "node-id3";
 import path from "path";
-
-// 设置ffmpeg路径
-ffmpeg.setFfmpegPath(ffmpegPath as string);
 
 /**
  * @description: 对象工具类
@@ -102,34 +98,154 @@ export class FileType {
 }
 
 export class AudioParse {
-    static parseCaptions(captionsJson: string): { lrc: string } {
+    /**
+     * 解析字幕JSON并生成LRC和SRT格式的字幕
+     * @param captionsJson 字幕JSON字符串
+     * @returns 包含LRC和SRT字幕的对象
+     */
+    static parseCaptions(captionsJson: string): { lrc: string; srt: string; duration: number } {
         const captions = JSON.parse(captionsJson);
-        let lrcLines: string[] = [];
-        for (const utterance of captions.utterances) {
-            const startMs = Math.floor(utterance.start_time)
-            const text: string = utterance.text
-            // LRC 行：[mm:ss.xx]text
-            const timeStr = AudioParse.formatTimeLRC(startMs);
-            const lineText = `${timeStr}${text}`;
+        const lrcLines: string[] = [];
+        const srtLines: string[] = [];
+        const duration: number = captions.duration;
+        let index = 1;
 
-            if (lineText) {
-                // LRC 格式
-                lrcLines.push(lineText);
+        for (const utterance of captions.utterances) {
+            const startMs = Math.floor(utterance.start_time); // 转换为毫秒
+            const endMs = Math.floor(utterance.end_time);
+            const text: string = utterance.text;
+
+            // 生成LRC格式行：[mm:ss.xx]text
+            const lrcTimeStr = AudioParse.formatTimeLRC(startMs);
+            const lrcLine = `[${lrcTimeStr}]${text}`;
+            if (lrcLine) {
+                lrcLines.push(lrcLine);
             }
+
+            // 生成SRT格式块
+            const srtStartTime = AudioParse.formatTimeSRT(startMs);
+            const srtEndTime = AudioParse.formatTimeSRT(endMs);
+            const srtBlock = `${index++}\n${srtStartTime} --> ${srtEndTime}\n${text}\n`;
+            srtLines.push(srtBlock);
         }
+
         return {
-            lrc: lrcLines.join('\n')
+            lrc: lrcLines.join('\n'),
+            srt: srtLines.join('\n'),
+            duration: duration
         };
     }
 
+    /**
+     * 格式化时间为LRC格式 (mm:ss.xx)
+     * @param milliseconds 时间(毫秒)
+     * @returns 格式化的时间字符串
+     */
     private static formatTimeLRC(ms: number): string {
         const totalSecs = Math.floor(ms / 1000);
         const mins = Math.floor(totalSecs / 60);
         const secs = totalSecs % 60;
         const hundredths = Math.floor((ms % 1000) / 10);
-        return `[${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(hundredths).padStart(2, '0')}]`;
+        return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(hundredths).padStart(2, '0')}`;
     }
 
+    /**
+     * 将毫秒转换为 SRT 字幕时间格式 (HH:MM:SS,mmm)
+     * @param ms 毫秒时间戳（从0开始）
+     * @returns SRT 格式的时间字符串，例如 "00:01:23,456"
+     */
+    private static formatTimeSRT(ms: number): string {
+        const totalSecs = Math.floor(ms / 1000);
+        const hours = Math.floor(totalSecs / 3600);
+        const mins = Math.floor((totalSecs % 3600) / 60);
+        const secs = totalSecs % 60;
+        const millis = ms % 1000;
+        return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')},${String(millis).padStart(3, '0')}`;
+    }
+
+    /**
+     * 将音频文件转换为带字幕的MKV文件
+     * @param audioPath 原音频文件路径
+     * @param srtPath 字幕文件路径(.srt)
+     * @param outputPath 可选输出路径
+     */
+    static async convertToMkvWithSubtitles(audioPath: string, srtPath: string, outputPath?: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const output = outputPath || path.join(path.dirname(audioPath), `${path.basename(audioPath, path.extname(audioPath))}.mkv`);
+
+            ffmpeg(audioPath)
+                .input(srtPath)
+                .outputOptions([
+                    '-c:a copy',          // 复制音频流
+                    '-c:s srt',      // 对于MP4兼容性更好
+                    '-map 0',             // 映射第一个输入(音频)
+                    '-map 1',             // 映射第二个输入(字幕)
+                    '-metadata:s:s:0 language=chi',
+                    '-disposition:s:0 default' // 标记为默认字幕
+                ])
+                .output(output)
+                .on('start', (commandLine) => {
+                    logger.info(`执行命令: ${commandLine}`);
+                })
+                .on('end', () => {
+                    logger.info(`MKV转换完成: ${output}`);
+                    resolve();
+                })
+                .on('error', (err) => {
+                    logger.error('MKV转换错误:', err);
+                    reject(err);
+                })
+                .on('progress', (progress) => {
+                    if (progress.percent && progress.currentFps) {
+                        const percent = Math.min(100, Math.round(progress.percent));
+                        logger.info(`MKV转换处理进度: ${percent}%`);
+                    }
+                })
+                .run();
+        });
+    }
+
+    /**
+     * 将音频文件转换为带字幕的MP4文件
+     * @param audioPath 原音频文件路径
+     * @param srtPath 字幕文件路径(.srt)
+     * @param outputPath 可选输出路径
+     */
+    static async convertToMp4WithSubtitles(audioPath: string, srtPath: string, outputPath?: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const output = outputPath || path.join(path.dirname(audioPath), `${path.basename(audioPath, path.extname(audioPath))}.mp4`);
+
+            ffmpeg(audioPath)
+                .input(srtPath)
+                .outputOptions([
+                    '-c:a copy',                      // 复制音频流
+                    '-c:s mov_text',                  // 使用 mov_text 格式嵌入字幕（适用于MP4）
+                    '-map 0',                         // 映射第一个输入(音频)
+                    '-map 1',                         // 映射第二个输入(字幕)
+                    '-metadata:s:s:0 language=chi',   // 设置字幕语言
+                    '-disposition:s:0 default'        // 默认启用该字幕轨道
+                ])
+                .output(output)
+                .on('start', (commandLine) => {
+                    logger.info(`执行命令: ${commandLine}`);
+                })
+                .on('end', () => {
+                    logger.info(`MP4转换完成: ${output}`);
+                    resolve();
+                })
+                .on('error', (err) => {
+                    logger.error('MP4转换错误:', err);
+                    reject(err);
+                })
+                .on('progress', (progress) => {
+                    if (progress.percent && progress.currentFps) {
+                        const percent = Math.min(100, Math.round(progress.percent));
+                        logger.info(`MP4转换处理进度: ${percent}%`);
+                    }
+                })
+                .run();
+        });
+    }
 
     /**
      * 将音频文件转换为 MP3 格式
@@ -147,15 +263,15 @@ export class AudioParse {
                 .audioBitrate(128) // 设置比特率（kbps）
                 .output(output)
                 .on('end', () => {
-                    console.log(`转换完成: ${output}`);
+                    logger.info(`转换完成: ${output}`);
                     resolve(output);
                 })
                 .on('error', (err) => {
-                    console.error('转换错误:', err);
+                    logger.error('转换错误:', err);
                     reject(err);
                 })
                 .on('progress', (progress) => {
-                    console.log(`处理中: ${Math.round(progress.percent)}% 完成`);
+                    logger.info(`处理中: ${Math.round(progress.percent)}% 完成`);
                 })
                 .run();
         });
@@ -182,10 +298,10 @@ export class AudioParse {
         // 写入标签到MP3文件
         const success = NodeID3.write(tags, mp3FilePath)
         if (!success) {
-            logger.error(`❌ 歌词写入失败, ${success instanceof Error ? success.message : ""}`);
-            return false;
+            logger.info(`❌ 跳过 ID3 歌词嵌入`);
+        } else {
+            logger.info('✅ 歌词已写入 MP3 文件');
         }
-        logger.info('✅ 歌词已写入 MP3 文件');
         return true;
     }
 }

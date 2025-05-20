@@ -635,6 +635,12 @@ export const douBaoSchema = () => [
                     label: "查询Version",
                     bottomHelpMessage: "官方没有变动就不需要改默认值",
                     component: "Input",
+                },
+                {
+                    field: "returnLyrics",
+                    label: "返回歌词",
+                    component: "Switch",
+                    bottomHelpMessage: "发送歌曲的同时发送歌词文本",
                 }
             ]
         },

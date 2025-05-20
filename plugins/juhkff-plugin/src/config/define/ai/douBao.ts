@@ -72,6 +72,7 @@ export type DouBao = {
         skipCopyCheck: boolean;
         queryAction: string;
         queryVersion: string;
+        returnLyrics: boolean;
     };
 }
 

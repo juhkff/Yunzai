@@ -7,6 +7,7 @@ import { AudioParse, FileType, Objects } from "../../utils/kits.js";
 import { downloadFile, url2Base64 } from "../../utils/net.js";
 import { config } from "../../config/index.js";
 import { processMessage } from "../../common.js";
+import { douBaoConfig } from "../../config/define/ai/douBao.js";
 export class douBao extends plugin {
     constructor() {
         super({
@@ -805,10 +806,10 @@ export class douBao extends plugin {
         var timestamp = new Date().getTime();
         const filePath = path.join(PLUGIN_DATA_DIR, `${e.group_id}`, "audio", `${timestamp}_${response.Result.TaskID}.${(await FileType.getAudioTypeFromBuffer(arrayBuffer)).ext}`);
         await downloadFile(audioUrl, filePath);
-        const mp3Path = await AudioParse.convertToMp3(filePath);
-        AudioParse.writeLyricsToMP3(mp3Path, lrc);
-        await e.reply(segment.file(mp3Path, path.basename(mp3Path)));
+        await e.reply(segment.file(filePath, path.basename(filePath)));
+        if (douBaoConfig.songGenerate.returnLyrics) {
+            await e.reply(lrc);
+        }
         fs.unlinkSync(filePath);
-        fs.unlinkSync(mp3Path);
     }
 }

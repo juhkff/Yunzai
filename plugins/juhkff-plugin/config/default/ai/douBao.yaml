@@ -162,3 +162,4 @@ songGenerate:
   skipCopyCheck: false
   queryAction: QuerySong
   queryVersion: 2024-08-12
+  returnLyrics: false
