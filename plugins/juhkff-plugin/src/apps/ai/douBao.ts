@@ -6,7 +6,7 @@ import { segment } from "oicq";
 // @ts-ignore
 import fastImageSize from "fast-image-size";
 import { PLUGIN_DATA_DIR } from "../../model/path.js";
-import { FileType, Objects } from "../../utils/kits.js";
+import { AudioParse, FileType, Objects } from "../../utils/kits.js";
 import { Request, RequestBody, RequestMsg } from "../../type.js";
 import { downloadFile, url2Base64 } from "../../utils/net.js";
 import { config } from "../../config/index.js";
@@ -810,19 +810,24 @@ export class douBao extends plugin {
     }
 
     async handleSongGenerateCompleted(e: any, response: any) {
-        var audioUrl = response.Result.SongDetail.AudioUrl;
+        const audioUrl = response.Result.SongDetail.AudioUrl;
+        const captions = response.Result.SongDetail.Captions;
+        const { lrc } = AudioParse.parseCaptions(captions);
         const res = await fetch(audioUrl);
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         const arrayBuffer = await res.arrayBuffer()
         var timestamp = new Date().getTime();
-        var filePath = path.join(
+        const filePath = path.join(
             PLUGIN_DATA_DIR,
             `${e.group_id}`,
             "audio",
             `${timestamp}_${response.Result.TaskID}.${(await FileType.getAudioTypeFromBuffer(arrayBuffer)).ext}`
         );
         await downloadFile(audioUrl, filePath);
-        await e.reply(segment.file(filePath, path.basename(filePath)));
+        const mp3Path = await AudioParse.convertToMp3(filePath);
+        AudioParse.writeLyricsToMP3(mp3Path, lrc);
+        await e.reply(segment.file(mp3Path, path.basename(mp3Path)));
         fs.unlinkSync(filePath);
+        fs.unlinkSync(mp3Path);
     }
 }

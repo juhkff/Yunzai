@@ -2,13 +2,13 @@
  * @file: net.js
  * @description: 网络请求相关
  */
-import fs from "fs";
-import https from "https";
+import fs, { createWriteStream } from "fs";
 import path from "path";
 import axios from "axios";
 import { DOMParser } from "xmldom";
 import fastImageSize from "fast-image-size";
 import { FileType } from "./kits.js";
+import { pipeline } from "stream/promises";
 /**
  * 下载文件
  * @param url 文件下载链接
@@ -20,24 +20,12 @@ export async function downloadFile(url, dest) {
     if (!fs.existsSync(path.dirname(dest))) {
         fs.mkdirSync(path.dirname(dest), { recursive: true });
     }
-    return new Promise((resolve, reject) => {
-        const file = fs.createWriteStream(dest);
-        https.get(url, (response) => {
-            if (response.statusCode !== 200) {
-                reject(new Error(`Failed to get '${url}' (${response.statusCode})`));
-                return;
-            }
-            response.pipe(file);
-            file.on("finish", () => {
-                file.close(resolve);
-            });
-            file.on("error", (err) => {
-                fs.unlink(dest, () => reject(err));
-            });
-        }).on("error", (err) => {
-            fs.unlink(dest, () => reject(err));
-        });
-    });
+    const res = await fetch(url);
+    if (!res.ok)
+        throw new Error(`Download failed: ${res.statusText}`);
+    const fileStream = createWriteStream(dest);
+    // 使用 pipeline 异步处理流
+    await pipeline(res.body, fileStream);
 }
 /**
  * 下载图片并转为 Base64

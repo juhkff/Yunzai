@@ -1,5 +1,10 @@
 import * as fileType from "file-type";
+import ffmpeg from "fluent-ffmpeg";
+import ffmpegPath from "ffmpeg-static";
 import NodeID3 from "node-id3";
+import path from "path";
+// 设置ffmpeg路径
+ffmpeg.setFfmpegPath(ffmpegPath);
 /**
  * @description: 对象工具类
  */
@@ -88,16 +93,15 @@ export class FileType {
         return await fileType.fileTypeFromBuffer(arrayBuffer);
     }
 }
-export class Audio {
+export class AudioParse {
     static parseCaptions(captionsJson) {
         const captions = JSON.parse(captionsJson);
         let lrcLines = [];
         for (const utterance of captions.utterances) {
-            const words = utterance.words || [];
-            const startMs = Math.floor(words.start_time);
-            const text = words.text;
+            const startMs = Math.floor(utterance.start_time);
+            const text = utterance.text;
             // LRC 行：[mm:ss.xx]text
-            const timeStr = Audio.formatTimeLRC(startMs);
+            const timeStr = AudioParse.formatTimeLRC(startMs);
             const lineText = `${timeStr}${text}`;
             if (lineText) {
                 // LRC 格式
@@ -115,14 +119,61 @@ export class Audio {
         const hundredths = Math.floor((ms % 1000) / 10);
         return `[${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(hundredths).padStart(2, '0')}]`;
     }
-    static async writeLyricsToMP3(mp3FilePath, lrcContent) {
-        const tags = NodeID3.read(mp3FilePath);
+    /**
+     * 将音频文件转换为 MP3 格式
+     * @param inputPath 输入文件路径
+     * @param outputPath 输出 MP3 文件路径（可选）
+     * @returns 输出文件路径
+     */
+    static async convertToMp3(inputPath, outputPath) {
+        if (inputPath.endsWith('.mp3'))
+            return new Promise((resolve) => resolve(inputPath));
+        return new Promise((resolve, reject) => {
+            // 如果没有指定输出路径，则使用相同目录，更改扩展名为.mp3
+            const output = outputPath || path.join(path.dirname(inputPath), path.basename(inputPath, path.extname(inputPath)) + '.mp3');
+            ffmpeg(inputPath)
+                .audioCodec('libmp3lame') // 使用MP3编码器
+                .audioBitrate(128) // 设置比特率（kbps）
+                .output(output)
+                .on('end', () => {
+                console.log(`转换完成: ${output}`);
+                resolve(output);
+            })
+                .on('error', (err) => {
+                console.error('转换错误:', err);
+                reject(err);
+            })
+                .on('progress', (progress) => {
+                console.log(`处理中: ${Math.round(progress.percent)}% 完成`);
+            })
+                .run();
+        });
+    }
+    static writeLyricsToMP3(mp3FilePath, lrcContent, title = "AI Generated", language = 'chi') {
+        // 准备要写入的字幕/歌词数据
+        const lyrics = {
+            language: language,
+            text: lrcContent
+        };
+        const tags = {
+            title: title,
+            artist: "AI Generated",
+            album: "AI Generated",
+            unsynchronisedLyrics: lyrics, // 添加歌词/字幕
+            // 可以添加其他ID3标签
+        };
         // tags.uslt = {
         //     language: 'eng',
         //     descriptor: 'Embedded Lyrics',
         //     text: lrcContent
         // };
-        NodeID3.write(tags, mp3FilePath);
-        console.log('✅ 歌词已写入 MP3 文件');
+        // 写入标签到MP3文件
+        const success = NodeID3.write(tags, mp3FilePath);
+        if (!success) {
+            logger.error(`❌ 歌词写入失败, ${success instanceof Error ? success.message : ""}`);
+            return false;
+        }
+        logger.info('✅ 歌词已写入 MP3 文件');
+        return true;
     }
 }
