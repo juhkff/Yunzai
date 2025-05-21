@@ -44,4 +44,20 @@ export const dailyReportSchema = () => [
         bottomHelpMessage: "推送群组列表",
         component: "GSelectGroup",
     },
+    {
+        field: "dailyReport.preHandle",
+        label: "预处理模式",
+        bottomHelpMessage: "开启后，会提前生成日报图片，调用指令或定时任务直接发送预生成的图片",
+        component: "Switch",
+    },
+    {
+        field: "dailyReport.preHandleTime",
+        label: "预处理时间",
+        bottomHelpMessage:
+            "秒[0,59] 分钟[0,59] 小时[0,23] 日期[1,31] 月份[1,12] 星期[0,7/SUN,SAT]，调整时间后需重启BOT",
+        component: "EasyCron",
+        componentProps: {
+            placeholder: "*表示任意，?表示不指定（月日和星期互斥）",
+        },
+    },
 ]

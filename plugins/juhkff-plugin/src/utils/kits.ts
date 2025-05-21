@@ -92,7 +92,7 @@ export class FileType {
         return null;
     }
 
-    static async getAudioTypeFromBuffer(arrayBuffer: ArrayBuffer | Uint8Array<ArrayBufferLike>): Promise<fileType.FileTypeResult> {
+    static async getFileTypeFromBuffer(arrayBuffer: ArrayBuffer | Uint8Array<ArrayBufferLike>): Promise<fileType.FileTypeResult> {
         return await fileType.fileTypeFromBuffer(arrayBuffer);
     }
 }

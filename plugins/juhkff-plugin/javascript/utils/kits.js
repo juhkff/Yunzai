@@ -86,7 +86,7 @@ export class FileType {
             return base64;
         return null;
     }
-    static async getAudioTypeFromBuffer(arrayBuffer) {
+    static async getFileTypeFromBuffer(arrayBuffer) {
         return await fileType.fileTypeFromBuffer(arrayBuffer);
     }
 }
