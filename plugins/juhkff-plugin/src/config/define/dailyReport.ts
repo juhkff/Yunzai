@@ -13,8 +13,9 @@ export type DailyReport = {
     push: boolean;
     dailyReportTime: CronExpression;
     pushGroupList: string[];
-    preHandle: boolean,
-    pushTimeCron: CronExpression;
+    preHandle: boolean;
+    preHandleTime: CronExpression;
+    preHandleRetryInterval: number;
 }
 
 export let dailyReportConfig: DailyReport = null;

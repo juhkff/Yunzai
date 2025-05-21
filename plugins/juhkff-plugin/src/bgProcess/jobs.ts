@@ -1,41 +1,51 @@
-import path from "path";
 import fs from "fs";
 import { scheduleJob } from "node-schedule"
-import { config } from "../config";
-import { dailyReport } from "../apps/dailyReport";
-import { sleep } from "../common";
-import { PLUGIN_DATA_DIR } from "../model/path";
-import { FileType } from "../utils/kits";
-import { CronExpression, JobDict } from "../type";
+import { config } from "../config/index.js";
+import { DAILY_REPORT_SAVE_PATH, dailyReport } from "../apps/dailyReport.js";
+import { sleep } from "../common.js";
+import { CronExpression, JobDict } from "../type.js";
 
-const DAILY_REPORT_JOB_NAME = "dailyReportJob";
+export const DAILY_REPORT_GENERATE = "dailyReportGenerateJob";
+export const DAILY_REPORT_PUSH = "dailyReportPushJob";
 const jobDict: JobDict = {};
 
-async function runDailyReportTask() {
-    if (!config.dailyReport.preHandle) return;
-    logger.log("预处理 -> 生成日报")
+export async function pushDailyReport() {
+    logger.info("推送日报");
     let imageBuffer = null;
+    if (config.dailyReport.preHandle) {
+        if (!fs.existsSync(DAILY_REPORT_SAVE_PATH)) dailyReport.generateAndSaveDailyReport();
+        imageBuffer = fs.readFileSync(DAILY_REPORT_SAVE_PATH);
+    } else {
+        imageBuffer = await dailyReport.generateDailyReport();
+    }
+    for (let i = 0; i < config.dailyReport.pushGroupList.length; i++) {
+        // 添加延迟以防止消息发送过快
+        setTimeout(async () => {
+            const group = Bot.pickGroup(config.dailyReport.pushGroupList[i]);
+            logger.info(`正在向群组 ${group} 推送新闻。`);
+            await group.sendMsg([segment.image(imageBuffer)]);
+        }, i * 1000);
+    }
+}
+
+export async function autoSaveDailyReport() {
+    logger.info("[JUHKFF-PLUGIN] 预处理 -> 生成日报")
     let doOnce = false;
     while (true) {
         try {
-            imageBuffer = await dailyReport.generateDailyReport();
-            if (imageBuffer) {
-                break;
-            }
+            await dailyReport.generateAndSaveDailyReport();
+            doOnce = true;
+            break;
         } catch (e) {
             if (!doOnce) {
                 logger.error(e)
                 doOnce = true;
             }
-            // 休眠1分钟循环执行
-            sleep(60000)
+            // 休眠后循环执行
+            sleep(config.dailyReport.preHandleRetryInterval * 1000)
         }
     }
-    // 保存
-    const imagePath = path.join(PLUGIN_DATA_DIR, `dailyReport.${(await FileType.getFileTypeFromBuffer(imageBuffer)).ext}`);
-    if (!fs.existsSync(PLUGIN_DATA_DIR)) fs.mkdirSync(PLUGIN_DATA_DIR);
-    fs.writeFileSync(imagePath, imageBuffer);
-    logger.log("预处理 -> 生成日报成功")
+    logger.info("[JUHKFF-PLUGIN] 预处理 -> 生成日报成功")
 }
 
 /**
@@ -43,23 +53,23 @@ async function runDailyReportTask() {
  * @param taskName 枚举值
  * @param taskCron Cron 表达式
  */
-function upsertJobFromConfig(taskName: string, taskCron: CronExpression) {
-    if (jobDict[taskName] && jobDict[taskName].reschedule(taskCron)) logger.info(`已修改定时任务${taskName}: ${taskCron}`);
+export function upsertJobFromConfig(taskName: string, taskCron: CronExpression, taskFunc: () => void | Promise<void>) {
+    if (jobDict[taskName] && jobDict[taskName].reschedule(taskCron)) logger.info(`[JUHKFF-PLUGIN] 已修改定时任务 ${taskName}: ${taskCron}`);
     else {
-        jobDict[taskName] = scheduleJob(taskName, taskCron, runDailyReportTask);
-        logger.info(`已设置定时任务${taskName}: ${taskCron}`);
+        jobDict[taskName] = scheduleJob(taskName, taskCron, taskFunc);
+        logger.info(`[JUHKFF-PLUGIN] 已设置定时任务 ${taskName}: ${taskCron}`);
     }
 }
 
+export function deleteJob(taskName: string) {
+    if (jobDict[taskName]) {
+        jobDict[taskName].cancel();
+        delete jobDict[taskName];
+        logger.info(`[JUHKFF-PLUGIN] 已删除定时任务${taskName}`);
+    }
+}
+
+if (config.dailyReport.useDailyReport && config.dailyReport.push)
+    upsertJobFromConfig(DAILY_REPORT_PUSH, config.dailyReport.dailyReportTime, dailyReport.generateAndSaveDailyReport);
 if (config.dailyReport.useDailyReport && config.dailyReport.preHandle)
-    upsertJobFromConfig(DAILY_REPORT_JOB_NAME, config.dailyReport.pushTimeCron);
-
-// 模拟监听配置变化（实际应根据你的配置管理系统实现）
-function changeJobFromConfig(configs: [{ name: string, inputCron: CronExpression }]) {
-    for (const { name, inputCron } of configs) {
-        if (jobDict[name] !== inputCron) {
-            console.log(`检测到配置变化，更新定时任务时间：${jobDict[name]} -> ${inputCron}`);
-            upsertJobFromConfig(); // 重新创建任务
-        }
-    }
-}
+    upsertJobFromConfig(DAILY_REPORT_GENERATE, config.dailyReport.preHandleTime, autoSaveDailyReport);

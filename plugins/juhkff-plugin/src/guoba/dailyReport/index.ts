@@ -32,7 +32,7 @@ export const dailyReportSchema = () => [
         field: "dailyReport.dailyReportTime",
         label: "定时发送日报时间",
         bottomHelpMessage:
-            "秒[0,59] 分钟[0,59] 小时[0,23] 日期[1,31] 月份[1,12] 星期[0,7/SUN,SAT]，调整时间后需重启BOT",
+            "秒[0,59] 分钟[0,59] 小时[0,23] 日期[1,31] 月份[1,12] 星期[0,7/SUN,SAT]，仅支持6位格式，多余位数会自动忽略",
         component: "EasyCron",
         componentProps: {
             placeholder: "*表示任意，?表示不指定（月日和星期互斥）",
@@ -54,10 +54,20 @@ export const dailyReportSchema = () => [
         field: "dailyReport.preHandleTime",
         label: "预处理时间",
         bottomHelpMessage:
-            "秒[0,59] 分钟[0,59] 小时[0,23] 日期[1,31] 月份[1,12] 星期[0,7/SUN,SAT]，调整时间后需重启BOT",
+            "推荐将该时间设为较早于定时推送时间",
         component: "EasyCron",
         componentProps: {
             placeholder: "*表示任意，?表示不指定（月日和星期互斥）",
+        },
+    },
+    {
+        field: "dailyReport.preHandleRetryInterval",
+        label: "预处理重试间隔",
+        bottomHelpMessage: "预处理失败时，重试间隔时间，单位为秒。由于频繁重试可能会被接口限制，请合理设置间隔",
+        component: "InputNumber",
+        componentProps: {
+            min: 1,
+            step: 1,
         },
     },
 ]
